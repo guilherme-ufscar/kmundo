@@ -43,10 +43,10 @@ export default async function DashboardPage() {
   const primeiroNome = cliente.nomeCompleto.split(' ')[0]
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>
           Olá, {primeiroNome} ✨
         </h1>
         <p style={{ color: '#6B7280' }}>Bem-vinda de volta ao seu painel</p>
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
       <SuiteCard numeroDeSuite={cliente.numeroDeSuite} nomeCliente={cliente.nomeCompleto} />
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mt-6 mb-8">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6 mb-6 sm:mb-8">
         <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium" style={{ color: '#6B7280' }}>Comprado</span>
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
               <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
             </div>
           </div>
-          <p className="text-3xl font-bold" style={{ color: '#1A1A2E' }}>{emArmazem}</p>
+          <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A1A2E' }}>{emArmazem}</p>
           <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>itens aguardando envio</p>
         </div>
 
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
               <Truck className="w-4 h-4" style={{ color: '#F59E0B' }} />
             </div>
           </div>
-          <p className="text-3xl font-bold" style={{ color: '#1A1A2E' }}>{emEnvio}</p>
+          <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A1A2E' }}>{emEnvio}</p>
           <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>itens a caminho</p>
         </div>
 
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
               <Clock className="w-4 h-4" style={{ color: '#22C55E' }} />
             </div>
           </div>
-          <p className="text-3xl font-bold" style={{ color: '#1A1A2E' }}>{entregues}</p>
+          <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A1A2E' }}>{entregues}</p>
           <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>total recebidos</p>
         </div>
       </div>
@@ -109,6 +109,7 @@ export default async function DashboardPage() {
             </p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr style={{ background: '#F9FAFB' }}>
@@ -148,6 +149,7 @@ export default async function DashboardPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

@@ -35,15 +35,15 @@ export default async function MeusItensPage() {
   })
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Meus Itens</h1>
+    <div className="p-4 sm:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Meus Itens</h1>
         <p style={{ color: '#6B7280' }}>{itens.length} {itens.length === 1 ? 'item' : 'itens'} no total</p>
       </div>
 
       <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         {itens.length === 0 ? (
-          <div className="p-16 text-center">
+          <div className="p-8 sm:p-16 text-center">
             <Package className="w-16 h-16 mx-auto mb-4" style={{ color: '#E5E7EB' }} />
             <p className="font-semibold text-lg" style={{ color: '#6B7280' }}>Nenhum item ainda</p>
             <p className="text-sm mt-2" style={{ color: '#9CA3AF' }}>

@@ -50,10 +50,10 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
   })
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Envios</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Envios</h1>
           <p style={{ color: '#6B7280' }}>{envios.length} envio(s) encontrado(s)</p>
         </div>
       </div>

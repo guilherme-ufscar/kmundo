@@ -98,7 +98,7 @@ export default function NovoEnvioPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 sm:p-8 max-w-2xl">
       <div className="flex items-center gap-3 mb-8">
         <Link href="/meus-envios">
           <button type="button" className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors" style={{ color: '#6B7280' }}>
@@ -120,7 +120,7 @@ export default function NovoEnvioPage() {
       {/* Método de envio */}
       <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Método de Envio</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {metodos.map((m) => {
             const ativo = metodo === m.value
             return (
