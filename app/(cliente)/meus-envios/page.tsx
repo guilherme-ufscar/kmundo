@@ -6,7 +6,8 @@ import { Package, Truck, Plus, ChevronRight } from 'lucide-react'
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
   CONFIRMADO: 'Confirmado',
-  PAGO: 'Pago',
+  EMBALANDO: 'Embalando',
+  PAGO: 'Aguardando pagamento',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }
@@ -14,6 +15,7 @@ const statusLabel: Record<string, string> = {
 const statusColors: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: '#F59E0B',
   CONFIRMADO: '#3B82F6',
+  EMBALANDO: '#F97316',
   PAGO: '#8B5CF6',
   ENVIADO: '#FF6B9D',
   ENTREGUE: '#22C55E',

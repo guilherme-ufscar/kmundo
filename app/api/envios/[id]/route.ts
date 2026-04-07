@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { notificarClienteStatusEnvio, notificarAdminClienteConfirmou } from '@/lib/email'
 
 const patchAdminSchema = z.object({
-  status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'PAGO', 'ENVIADO', 'ENTREGUE']).optional(),
+  status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']).optional(),
   peso: z.number().positive().optional(),
   largura: z.number().positive().optional(),
   altura: z.number().positive().optional(),
@@ -91,15 +92,31 @@ export async function PATCH(
       data,
       include: {
         itens: { include: { item: true } },
-        cliente: { select: { nomeCompleto: true, numeroDeSuite: true } },
+        cliente: { include: { usuario: { select: { email: true } } } },
       },
     })
+
+    // Notificar cliente se status mudou
+    if (parsed.data.status && parsed.data.status !== envio.status) {
+      notificarClienteStatusEnvio({
+        emailCliente: atualizado.cliente.usuario.email,
+        nomeCliente: atualizado.cliente.nomeCompleto,
+        suite: atualizado.cliente.numeroDeSuite,
+        novoStatus: parsed.data.status,
+        metodo: atualizado.metodoEnvio,
+        tracking: atualizado.trackingEnvio,
+        itens: atualizado.itens.map(i => i.item.descricao),
+        envioId: atualizado.id,
+      }).catch(console.error)
+    }
+
     return NextResponse.json(atualizado)
   }
 
   // Cliente só pode confirmar
   const cliente = await prisma.cliente.findFirst({
     where: { usuario: { id: session.user.id } },
+    include: { usuario: { select: { email: true } } },
   })
   if (!cliente || envio.clienteId !== cliente.id) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
@@ -114,5 +131,12 @@ export async function PATCH(
     where: { id: params.id },
     data: { confirmadoCliente: true },
   })
+
+  notificarAdminClienteConfirmou({
+    nomeCliente: cliente.nomeCompleto,
+    suite: cliente.numeroDeSuite,
+    envioId: atualizado.id,
+  }).catch(console.error)
+
   return NextResponse.json(atualizado)
 }

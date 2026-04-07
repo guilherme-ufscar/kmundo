@@ -159,6 +159,7 @@ enum MetodoEnvio {
 enum StatusEnvio {
   AGUARDANDO_CONFIRMACAO
   CONFIRMADO
+  EMBALANDO
   PAGO
   ENVIADO
   ENTREGUE
