@@ -1,7 +1,7 @@
-import { ImapFlow } from 'imapflow'
+import { ImapFlow, ImapFlowOptions } from 'imapflow'
 import { simpleParser, ParsedMail } from 'mailparser'
 
-const MAIL_CONFIG = {
+const MAIL_CONFIG: ImapFlowOptions = {
   host: process.env.MAIL_HOST ?? 'mail.kmundowarehouse.com',
   port: parseInt(process.env.MAIL_IMAP_PORT ?? '993'),
   secure: true,
