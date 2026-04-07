@@ -153,7 +153,7 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
             <div>
               <p className="text-xs" style={{ color: '#9CA3AF' }}>Valor Declarado</p>
               <p className="text-sm font-medium mt-0.5" style={{ color: '#1A1A2E' }}>
-                {envio.valorDeclarado.toLocaleString('pt-BR')} {envio.moeda ?? 'KRW'}
+                {envio.valorDeclarado.toLocaleString('pt-BR')} {envio.moeda ?? 'BRL'}
               </p>
             </div>
           )}

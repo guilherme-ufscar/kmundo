@@ -108,7 +108,7 @@ model Envio {
   altura              Float?
   comprimento         Float?
   valorDeclarado      Float?
-  moeda               String?     @default("KRW")
+  moeda               String?     @default("BRL")
   fotos               String[]    @default([])
   videoUrl            String?
   trackingEnvio       String?

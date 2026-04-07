@@ -204,7 +204,7 @@ export default function NovoEnvioPage() {
               className="h-11 flex-1"
               style={{ borderRadius: '8px' }}
             />
-            <span className="text-sm font-medium px-3" style={{ color: '#6B7280' }}>KRW</span>
+            <span className="text-sm font-medium px-3" style={{ color: '#6B7280' }}>BRL</span>
           </div>
         </div>
       )}
