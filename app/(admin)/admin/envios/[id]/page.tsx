@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package, CheckCircle } from 'lucide-react'
 import { EnvioAdminForm } from '@/components/admin/EnvioAdminForm'
+import { DeleteButton } from '@/components/admin/DeleteButton'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
@@ -68,6 +69,11 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <DeleteButton
+            url={`/api/envios/${envio.id}`}
+            confirmar="Tem certeza que deseja excluir este envio? Esta ação não pode ser desfeita."
+            redirectTo="/admin/envios"
+          />
           <span
             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white"
             style={{ background: statusColors[envio.status] }}

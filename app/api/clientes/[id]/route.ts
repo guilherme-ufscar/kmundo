@@ -39,6 +39,32 @@ export async function GET(
   return NextResponse.json(cliente)
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth()
+  if (!session || session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+
+  const cliente = await prisma.cliente.findUnique({ where: { id: params.id } })
+  if (!cliente) {
+    return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.itemEnvio.deleteMany({ where: { item: { clienteId: params.id } } })
+    await tx.itemEnvio.deleteMany({ where: { envio: { clienteId: params.id } } })
+    await tx.item.deleteMany({ where: { clienteId: params.id } })
+    await tx.envio.deleteMany({ where: { clienteId: params.id } })
+    await tx.cliente.delete({ where: { id: params.id } })
+    await tx.usuario.delete({ where: { id: cliente.usuarioId } })
+  })
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }

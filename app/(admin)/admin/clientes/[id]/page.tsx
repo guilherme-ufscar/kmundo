@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, User, Package, Calendar, MapPin, Phone, Mail } from 'lucide-react'
+import { ArrowLeft, Package, Calendar } from 'lucide-react'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { ClienteStatusForm } from '@/components/admin/ClienteStatusForm'
+import { ClienteEditForm } from '@/components/admin/ClienteEditForm'
 
 const statusLabel: Record<string, string> = {
   RECEBIDO: 'Pagamento Feito',
@@ -43,9 +44,6 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
 
   if (!cliente) notFound()
 
-  const statusClienteLabel: Record<string, string> = { PENDENTE: 'Pendente', ATIVA: 'Ativa', SUSPENSA: 'Suspensa' }
-  const statusClienteColor: Record<string, string> = { PENDENTE: '#F59E0B', ATIVA: '#22C55E', SUSPENSA: '#EF4444' }
-
   return (
     <div className="p-8 max-w-4xl">
       <div className="flex items-center gap-3 mb-8">
@@ -66,51 +64,30 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
       </div>
 
       <div className="grid grid-cols-3 gap-6 mb-6">
-        {/* Info do cliente */}
-        <div className="col-span-2 bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-semibold flex items-center gap-2" style={{ color: '#1A1A2E' }}>
-              <User className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              Dados da Cliente
-            </h2>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusClienteColor[cliente.status] }}>
-              {statusClienteLabel[cliente.status]}
-            </span>
+        {/* Edit form */}
+        <div className="col-span-2">
+          <ClienteEditForm
+            cliente={{
+              id: cliente.id,
+              nomeCompleto: cliente.nomeCompleto,
+              telefone: cliente.telefone,
+              pais: cliente.pais,
+              cidade: cliente.cidade,
+              cep: cliente.cep,
+              endereco: cliente.endereco,
+              status: cliente.status,
+            }}
+            email={cliente.usuario.email}
+          />
+        </div>
+
+        {/* Status form + info cadastro */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Alterar Status</h2>
+            <ClienteStatusForm clienteId={cliente.id} statusAtual={cliente.status} />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
-                <Mail className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: '#9CA3AF' }}>Email</p>
-                <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>{cliente.usuario.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
-                <Phone className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: '#9CA3AF' }}>Telefone</p>
-                <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>{cliente.telefone}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
-                <MapPin className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              </div>
-              <div>
-                <p className="text-xs" style={{ color: '#9CA3AF' }}>País / Cidade</p>
-                <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
-                  {cliente.pais}{cliente.cidade ? ` — ${cliente.cidade}` : ''}
-                </p>
-              </div>
-            </div>
-
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
                 <Calendar className="w-4 h-4" style={{ color: '#FF6B9D' }} />
@@ -122,27 +99,7 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
                 </p>
               </div>
             </div>
-
-            {cliente.endereco && (
-              <div className="col-span-2 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
-                  <MapPin className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-                </div>
-                <div>
-                  <p className="text-xs" style={{ color: '#9CA3AF' }}>Endereço</p>
-                  <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
-                    {cliente.endereco}{cliente.cep ? ` — CEP ${cliente.cep}` : ''}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* Status form */}
-        <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Alterar Status</h2>
-          <ClienteStatusForm clienteId={cliente.id} statusAtual={cliente.status} />
         </div>
       </div>
 
