@@ -57,25 +57,25 @@ export default async function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Dashboard</h1>
+    <div className="p-4 sm:p-8">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Dashboard</h1>
         <p style={{ color: '#6B7280' }}>Visão geral do armazém</p>
       </div>
 
       {/* Métricas */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-8">
         {metricas.map(({ label, valor, total, icon: Icon, cor, bg }) => (
-          <div key={label} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium" style={{ color: '#6B7280' }}>{label}</span>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: bg }}>
-                <Icon className="w-4 h-4" style={{ color: cor }} />
+          <div key={label} className="bg-white rounded-2xl p-3 sm:p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <span className="text-xs sm:text-sm font-medium leading-tight pr-1" style={{ color: '#6B7280' }}>{label}</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: bg }}>
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: cor }} />
               </div>
             </div>
-            <p className="text-3xl font-bold" style={{ color: '#1A1A2E' }}>{valor}</p>
+            <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A1A2E' }}>{valor}</p>
             {total !== null && (
-              <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>de {total} total</p>
+              <p className="text-xs mt-1 hidden sm:block" style={{ color: '#9CA3AF' }}>de {total} total</p>
             )}
           </div>
         ))}

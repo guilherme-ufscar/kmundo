@@ -45,15 +45,15 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
   if (!cliente) notFound()
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex items-center gap-3 mb-8">
+    <div className="p-4 sm:p-8 max-w-4xl">
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <Link href="/admin/clientes">
           <button className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors" style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-4 h-4" />
           </button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>{cliente.nomeCompleto}</h1>
+          <h1 className="text-lg sm:text-2xl font-bold leading-tight" style={{ color: '#1A1A2E' }}>{cliente.nomeCompleto}</h1>
           <p style={{ color: '#6B7280' }}>
             Suite{' '}
             <span className="font-mono font-bold" style={{ color: '#FF6B9D' }}>
@@ -63,9 +63,9 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Edit form */}
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
           <ClienteEditForm
             cliente={{
               id: cliente.id,

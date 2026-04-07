@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
-import { Package } from 'lucide-react'
+import { Package, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { StorageBadge } from '@/components/cliente/StorageBadge'
 
@@ -36,9 +36,9 @@ export default async function MeusItensPage() {
 
   return (
     <div className="p-4 sm:p-8">
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-5 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Meus Itens</h1>
-        <p style={{ color: '#6B7280' }}>{itens.length} {itens.length === 1 ? 'item' : 'itens'} no total</p>
+        <p className="text-sm" style={{ color: '#6B7280' }}>{itens.length} {itens.length === 1 ? 'item' : 'itens'} no total</p>
       </div>
 
       <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
@@ -52,7 +52,40 @@ export default async function MeusItensPage() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Mobile: card list */}
+            <div className="sm:hidden divide-y divide-gray-50">
+              {itens.map((item) => {
+                const dias = calcularDiasArmazenado(item.dataEntrada)
+                const cor = getCorArmazenagem(dias)
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/meus-itens/${item.id}`}
+                    className="flex items-center gap-3 p-4 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF1F5' }}>
+                      <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate" style={{ color: '#1A1A2E' }}>{item.descricao}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem ?? '—'}</span>
+                        <StorageBadge dias={dias} cor={cor} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
+                        {statusLabel[item.status]}
+                      </span>
+                      <ChevronRight className="w-4 h-4" style={{ color: '#D1D5DB' }} />
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr style={{ background: '#F9FAFB' }}>
