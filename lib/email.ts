@@ -92,6 +92,50 @@ const statusItemCor: Record<string, string> = {
   ENTREGUE: '#22C55E',
 }
 
+// ─── Convite de cadastro → cliente ────────────────────────────────────────────
+
+export async function enviarEmailConvite(email: string, link: string, expiresAt: Date) {
+  const expira = expiresAt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  await resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: '🎉 Você foi convidado para o KMundo Warehouse',
+    html: layout(`
+      <h2 style="color:#1A1A2E;margin:0 0 12px;">Bem-vindo ao KMundo Warehouse!</h2>
+      <p style="color:#6B7280;margin:0 0 20px;">Você recebeu um convite para criar sua conta e começar a usar nossa suíte de compras na Coreia do Sul.</p>
+      ${btnPink(link, 'Criar minha conta')}
+      <p style="color:#9CA3AF;font-size:13px;margin:20px 0 0;">Este convite expira em <strong>${expira}</strong>. Se você não esperava este convite, ignore este e-mail.</p>
+    `),
+  })
+}
+
+// ─── Boas-vindas ao novo cliente ───────────────────────────────────────────────
+
+export async function enviarEmailBoasVindas(params: {
+  email: string
+  nomeCompleto: string
+  numeroDeSuite: number
+}) {
+  const { email, nomeCompleto, numeroDeSuite } = params
+  const suite = String(numeroDeSuite).padStart(3, '0')
+  await resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: `🎊 Sua suite #${suite} está pronta — KMundo Warehouse`,
+    html: layout(`
+      <p style="color:#6B7280;margin:0 0 4px;">Olá, <strong style="color:#1A1A2E;">${nomeCompleto}</strong>!</p>
+      <h2 style="color:#1A1A2E;margin:8px 0 16px;">Sua conta foi criada com sucesso</h2>
+      <div style="background:linear-gradient(135deg,#FF6B9D,#FF4D8D);border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
+        <p style="color:rgba(255,255,255,0.8);margin:0 0 4px;font-size:13px;">Seu número de suite</p>
+        <p style="color:#ffffff;font-size:48px;font-weight:800;margin:0;letter-spacing:2px;">#${suite}</p>
+        <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:13px;">Use este número ao fazer compras na Coreia</p>
+      </div>
+      <p style="color:#6B7280;margin:0 0 24px;">Agora você pode acompanhar seus itens, solicitar envios e gerenciar seus pedidos diretamente pela plataforma.</p>
+      ${btnPink(`${BASE_URL}/dashboard`, 'Acessar minha conta')}
+    `),
+  })
+}
+
 // ─── Recuperação de senha ──────────────────────────────────────────────────────
 
 export async function enviarEmailRecuperacaoSenha(email: string, token: string) {
