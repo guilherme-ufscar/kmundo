@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { cadastroSchema } from '@/lib/validations/auth'
 import { gerarProximaSuite } from '@/lib/suite'
 import { hash } from 'bcryptjs'
+import { enviarEmailBoasVindas } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -56,11 +57,19 @@ export async function POST(req: NextRequest) {
     include: { cliente: true },
   })
 
-  // Mark invite as used
   await prisma.conviteCliente.update({
     where: { token },
     data: { usado: true },
   })
+
+  // Email de boas-vindas com número de suite
+  if (usuario.cliente) {
+    enviarEmailBoasVindas({
+      email,
+      nomeCompleto,
+      numeroDeSuite: usuario.cliente.numeroDeSuite,
+    }).catch(console.error)
+  }
 
   return NextResponse.json(
     {

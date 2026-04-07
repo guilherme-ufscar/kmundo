@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { randomBytes } from 'crypto'
 import { z } from 'zod'
+import { enviarEmailConvite } from '@/lib/email'
 
 const criarConviteSchema = z.object({
   email: z.string().email('Email inválido').optional().or(z.literal('')),
@@ -29,7 +30,12 @@ export async function POST(req: NextRequest) {
     data: { token, email, expiresAt },
   })
 
-  const link = `http://kmundowarehouse.com/cadastro?token=${token}`
+  const link = `${process.env.NEXTAUTH_URL ?? 'https://kmundowarehouse.com'}/cadastro?token=${token}`
+
+  // Enviar email de convite se email foi fornecido
+  if (email) {
+    enviarEmailConvite(email, link, expiresAt).catch(console.error)
+  }
 
   return NextResponse.json({ token: convite.token, link, expiresAt: convite.expiresAt }, { status: 201 })
 }
