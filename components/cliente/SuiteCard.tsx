@@ -20,37 +20,30 @@ export function SuiteCard({ numeroDeSuite }: SuiteCardProps) {
 
   return (
     <div
-      className="rounded-2xl p-6 text-white relative overflow-hidden"
+      className="rounded-2xl p-5 sm:p-6 text-white relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #FF6B9D 0%, #C77DFF 100%)' }}
     >
-      {/* Decorative */}
       <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(30%, -30%)' }} />
       <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(-30%, 30%)' }} />
 
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-white/70 text-sm font-medium mb-1">Sua Suite</p>
-          <p className="text-6xl font-bold tracking-tight">#{suiteFormatado}</p>
-          <p className="text-white/70 text-sm mt-3">
+          <p className="text-5xl sm:text-6xl font-bold tracking-tight">#{suiteFormatado}</p>
+          <p className="text-white/70 text-xs sm:text-sm mt-2 sm:mt-3">
             Informe esse número ao fazer compras em lojas coreanas
           </p>
         </div>
 
         <button
           onClick={copiar}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shrink-0"
           style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}
         >
           {copied ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              Copiado!
-            </>
+            <><CheckCircle className="w-4 h-4" />Copiado!</>
           ) : (
-            <>
-              <Copy className="w-4 h-4" />
-              Copiar suite
-            </>
+            <><Copy className="w-4 h-4" />Copiar suite</>
           )}
         </button>
       </div>

@@ -150,7 +150,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Coluna esquerda */}
         <div className="space-y-6">
           {/* Status */}
@@ -188,7 +188,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
                 <Label className="text-xs" style={{ color: '#374151' }}>Peso (kg)</Label>
                 <Input type="number" step="0.01" placeholder="Ex: 2.5" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('peso')} />
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 mt-1">
                 <div>
                   <Label className="text-xs" style={{ color: '#374151' }}>Largura</Label>
                   <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('largura')} />
@@ -275,7 +275,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
           {fotos.length > 0 && (
             <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
               <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Fotos da Caixa ({fotos.length})</h2>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {fotos.map((foto, idx) => (
                   <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

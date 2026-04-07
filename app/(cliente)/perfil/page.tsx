@@ -13,9 +13,9 @@ export default async function PerfilPage() {
   if (!cliente) return null
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Meu Perfil</h1>
+    <div className="p-4 sm:p-8 max-w-2xl">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Meu Perfil</h1>
         <p style={{ color: '#6B7280' }}>Gerencie suas informações pessoais</p>
       </div>
 
@@ -25,7 +25,7 @@ export default async function PerfilPage() {
         style={{ background: 'linear-gradient(135deg, #FFF1F5, #FAF5FF)', border: '1px solid #FFD6E7' }}
       >
         <p className="text-xs font-medium mb-1" style={{ color: '#9CA3AF' }}>Número de Suite (imutável)</p>
-        <p className="text-3xl font-bold" style={{ color: '#FF6B9D' }}>
+        <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#FF6B9D' }}>
           #{String(cliente.numeroDeSuite).padStart(3, '0')}
         </p>
         <p className="text-xs mt-2" style={{ color: '#9CA3AF' }}>{cliente.usuario.email}</p>

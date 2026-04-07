@@ -47,15 +47,15 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
   const cor = getCorArmazenagem(dias)
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex items-center gap-3 mb-8">
+    <div className="p-4 sm:p-8 max-w-4xl">
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <Link href="/admin/itens">
           <button className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors" style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-4 h-4" />
           </button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>{item.descricao}</h1>
+          <h1 className="text-lg sm:text-2xl font-bold leading-tight" style={{ color: '#1A1A2E' }}>{item.descricao}</h1>
           <p style={{ color: '#6B7280' }}>
             Suite{' '}
             <Link href={`/admin/clientes/${item.clienteId}`} className="font-mono font-bold hover:underline" style={{ color: '#FF6B9D' }}>
@@ -66,9 +66,9 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Dados do item */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <div className="flex items-center gap-2 mb-4">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
@@ -98,7 +98,7 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
           {item.fotos && item.fotos.length > 0 && (
             <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
               <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Fotos ({item.fotos.length})</h2>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {item.fotos.map((foto, idx) => (
                   <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

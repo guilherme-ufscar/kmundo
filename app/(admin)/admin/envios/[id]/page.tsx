@@ -49,18 +49,18 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
   if (!envio) notFound()
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex items-center gap-3 mb-8">
+    <div className="p-4 sm:p-8 max-w-4xl">
+      <div className="flex flex-wrap items-start gap-3 mb-6 sm:mb-8">
         <Link href="/admin/envios">
-          <button className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors" style={{ color: '#6B7280' }}>
+          <button className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors shrink-0" style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-4 h-4" />
           </button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold leading-tight" style={{ color: '#1A1A2E' }}>
             Envio — {metodoLabel[envio.metodoEnvio]}
           </h1>
-          <p style={{ color: '#6B7280' }}>
+          <p className="text-sm" style={{ color: '#6B7280' }}>
             Suite{' '}
             <Link href={`/admin/clientes/${envio.cliente.id}`} className="font-mono font-bold hover:underline" style={{ color: '#FF6B9D' }}>
               #{String(envio.cliente.numeroDeSuite).padStart(3, '0')}
@@ -68,7 +68,7 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
             {' '}— {envio.cliente.nomeCompleto}
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <DeleteButton
             url={`/api/envios/${envio.id}`}
             confirmar="Tem certeza que deseja excluir este envio? Esta ação não pode ser desfeita."
