@@ -53,9 +53,10 @@ interface EnvioData {
 
 interface Props {
   envio: EnvioData
+  fotos: string[]
 }
 
-export function EnvioAdminForm({ envio }: Props) {
+export function EnvioAdminForm({ envio, fotos }: Props) {
   const router = useRouter()
   const [salvando, setSalvando] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -147,149 +148,176 @@ export function EnvioAdminForm({ envio }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Status */}
-      <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Status do Envio</h2>
-        <div className="space-y-2">
-          {statusOpcoes.map((op) => (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="grid grid-cols-2 gap-6">
+        {/* Coluna esquerda */}
+        <div className="space-y-6">
+          {/* Status */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Status do Envio</h2>
+            <div className="space-y-2">
+              {statusOpcoes.map((op) => (
+                <label
+                  key={op.value}
+                  className="flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition-colors"
+                  style={{ borderColor: '#E5E7EB' }}
+                >
+                  <input
+                    type="radio"
+                    value={op.value}
+                    {...register('status')}
+                    className="accent-pink-500"
+                  />
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                    style={{ background: op.color }}
+                  >
+                    {op.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Dimensões e peso */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Dimensões e Peso</h2>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs" style={{ color: '#374151' }}>Peso (kg)</Label>
+                <Input type="number" step="0.01" placeholder="Ex: 2.5" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('peso')} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs" style={{ color: '#374151' }}>Largura</Label>
+                  <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('largura')} />
+                </div>
+                <div>
+                  <Label className="text-xs" style={{ color: '#374151' }}>Altura</Label>
+                  <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('altura')} />
+                </div>
+                <div>
+                  <Label className="text-xs" style={{ color: '#374151' }}>Comprimento</Label>
+                  <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('comprimento')} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Valor declarado */}
+          {envio.metodoEnvio !== 'ENVIO_EM_GRUPO' && (
+            <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Valor Declarado</h2>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="Ex: 150.00"
+                  className="h-10 flex-1"
+                  style={{ borderRadius: '8px' }}
+                  {...register('valorDeclarado')}
+                />
+                <select
+                  className="h-10 px-2 rounded-lg border text-sm"
+                  style={{ borderRadius: '8px', borderColor: '#E5E7EB', color: '#1A1A2E' }}
+                  {...register('moeda')}
+                >
+                  <option value="BRL">BRL</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="KRW">KRW</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Coluna direita */}
+        <div className="space-y-6">
+          {/* Rastreamento e vídeo */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Rastreamento e Vídeo</h2>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs" style={{ color: '#374151' }}>Número de rastreamento</Label>
+                <Input placeholder="Ex: 123456789" className="h-10 mt-1 font-mono" style={{ borderRadius: '8px' }} {...register('trackingEnvio')} />
+              </div>
+              <div>
+                <Label className="text-xs" style={{ color: '#374151' }}>Link do vídeo YouTube</Label>
+                <Input placeholder="https://youtube.com/watch?v=..." className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('videoUrl')} />
+              </div>
+            </div>
+          </div>
+
+          {/* Data limite e observações */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Pagamento e Observações</h2>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs" style={{ color: '#374151' }}>Data limite de pagamento</Label>
+                <Input type="date" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('dataLimitePagamento')} />
+              </div>
+              <div>
+                <Label className="text-xs" style={{ color: '#374151' }}>Observações</Label>
+                <textarea
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  rows={3}
+                  placeholder="Instruções de pagamento, informações adicionais..."
+                  style={{ borderRadius: '8px' }}
+                  {...register('observacoes')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Fotos existentes */}
+          {fotos.length > 0 && (
+            <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Fotos da Caixa ({fotos.length})</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {fotos.map((foto, idx) => (
+                  <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={foto}
+                      alt={`Foto ${idx + 1}`}
+                      className="w-full aspect-square object-cover rounded-xl hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload de fotos */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Adicionar Fotos da Caixa</h2>
             <label
-              key={op.value}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition-colors"
+              className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-gray-50"
               style={{ borderColor: '#E5E7EB' }}
             >
-              <input
-                type="radio"
-                value={op.value}
-                {...register('status')}
-                className="accent-pink-500"
-              />
-              <span
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white"
-                style={{ background: op.color }}
-              >
-                {op.label}
+              <Camera className="w-6 h-6" style={{ color: '#9CA3AF' }} />
+              <span className="text-sm" style={{ color: '#9CA3AF' }}>
+                {uploading ? 'Enviando...' : 'Clique para adicionar fotos'}
               </span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleUploadFotos}
+                disabled={uploading}
+              />
             </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Dimensões e peso */}
-      <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Dimensões e Peso</h2>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-xs" style={{ color: '#374151' }}>Peso (kg)</Label>
-            <Input type="number" step="0.01" placeholder="Ex: 2.5" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('peso')} />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <Label className="text-xs" style={{ color: '#374151' }}>Largura</Label>
-              <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('largura')} />
-            </div>
-            <div>
-              <Label className="text-xs" style={{ color: '#374151' }}>Altura</Label>
-              <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('altura')} />
-            </div>
-            <div>
-              <Label className="text-xs" style={{ color: '#374151' }}>Comprimento</Label>
-              <Input type="number" step="0.1" placeholder="cm" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('comprimento')} />
-            </div>
           </div>
         </div>
-      </div>
-
-      {/* Valor declarado — não para Envio em Grupo */}
-      {envio.metodoEnvio !== 'ENVIO_EM_GRUPO' && (
-        <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Valor Declarado</h2>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="Ex: 50000"
-              className="h-10 flex-1"
-              style={{ borderRadius: '8px' }}
-              {...register('valorDeclarado')}
-            />
-            <select
-              className="h-10 px-2 rounded-lg border text-sm"
-              style={{ borderRadius: '8px', borderColor: '#E5E7EB', color: '#1A1A2E' }}
-              {...register('moeda')}
-            >
-              <option value="KRW">KRW</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="BRL">BRL</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Rastreamento e vídeo */}
-      <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Rastreamento e Vídeo</h2>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-xs" style={{ color: '#374151' }}>Número de rastreamento</Label>
-            <Input placeholder="Ex: 123456789" className="h-10 mt-1 font-mono" style={{ borderRadius: '8px' }} {...register('trackingEnvio')} />
-          </div>
-          <div>
-            <Label className="text-xs" style={{ color: '#374151' }}>Link do vídeo YouTube</Label>
-            <Input placeholder="https://youtube.com/watch?v=..." className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('videoUrl')} />
-          </div>
-        </div>
-      </div>
-
-      {/* Data limite e observações */}
-      <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Pagamento e Observações</h2>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-xs" style={{ color: '#374151' }}>Data limite de pagamento</Label>
-            <Input type="date" className="h-10 mt-1" style={{ borderRadius: '8px' }} {...register('dataLimitePagamento')} />
-          </div>
-          <div>
-            <Label className="text-xs" style={{ color: '#374151' }}>Observações</Label>
-            <textarea
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              rows={3}
-              placeholder="Instruções de pagamento, informações adicionais..."
-              style={{ borderRadius: '8px' }}
-              {...register('observacoes')}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Upload de fotos */}
-      <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Adicionar Fotos da Caixa</h2>
-        <label
-          className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed cursor-pointer transition-colors hover:bg-gray-50"
-          style={{ borderColor: '#E5E7EB' }}
-        >
-          <Camera className="w-6 h-6" style={{ color: '#9CA3AF' }} />
-          <span className="text-sm" style={{ color: '#9CA3AF' }}>
-            {uploading ? 'Enviando...' : 'Clique para adicionar fotos'}
-          </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            className="hidden"
-            onChange={handleUploadFotos}
-            disabled={uploading}
-          />
-        </label>
       </div>
 
       <Button
         type="submit"
         disabled={salvando}
-        className="w-full h-11 font-semibold text-white"
+        className="w-full h-11 font-semibold text-white mt-6"
         style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '10px' }}
       >
         {salvando ? 'Salvando...' : 'Salvar Alterações'}

@@ -84,76 +84,51 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Coluna principal */}
-        <div className="col-span-2 space-y-6">
-          {/* Itens */}
-          <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <h2 className="font-semibold mb-4 flex items-center gap-2" style={{ color: '#1A1A2E' }}>
-              <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              Itens no Envio ({envio.itens.length})
-            </h2>
-            <div className="space-y-3">
-              {envio.itens.map(({ item }) => (
-                <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#F9FAFB' }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#FFF1F5' }}>
-                    <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{item.descricao}</p>
-                    {item.lojaOrigem && (
-                      <p className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem}</p>
-                    )}
-                  </div>
-                  {item.trackingLoja && (
-                    <span className="text-xs font-mono" style={{ color: '#9CA3AF' }}>{item.trackingLoja}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Fotos atuais */}
-          {envio.fotos.length > 0 && (
-            <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>
-                Fotos da Caixa ({envio.fotos.length})
-              </h2>
-              <div className="grid grid-cols-3 gap-3">
-                {envio.fotos.map((foto, idx) => (
-                  <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={foto}
-                      alt={`Foto ${idx + 1}`}
-                      className="w-full aspect-square object-cover rounded-xl hover:opacity-90 transition-opacity"
-                    />
-                  </a>
-                ))}
+      {/* Itens — full width */}
+      <div className="bg-white rounded-2xl p-6 mb-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4 flex items-center gap-2" style={{ color: '#1A1A2E' }}>
+          <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
+          Itens no Envio ({envio.itens.length})
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {envio.itens.map(({ item }) => (
+            <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#F9FAFB' }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
+                <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{item.descricao}</p>
+                {item.lojaOrigem && (
+                  <p className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem}</p>
+                )}
+              </div>
+              {item.trackingLoja && (
+                <span className="text-xs font-mono flex-shrink-0" style={{ color: '#9CA3AF' }}>{item.trackingLoja}</span>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Formulário admin */}
-        <div className="space-y-6">
-          <EnvioAdminForm envio={{
-            id: envio.id,
-            status: envio.status,
-            metodoEnvio: envio.metodoEnvio,
-            peso: envio.peso,
-            largura: envio.largura,
-            altura: envio.altura,
-            comprimento: envio.comprimento,
-            valorDeclarado: envio.valorDeclarado,
-            moeda: envio.moeda,
-            videoUrl: envio.videoUrl,
-            trackingEnvio: envio.trackingEnvio,
-            dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
-            observacoes: envio.observacoes,
-          }} />
+          ))}
         </div>
       </div>
+
+      {/* Formulário + Fotos em 2 colunas */}
+      <EnvioAdminForm
+        envio={{
+          id: envio.id,
+          status: envio.status,
+          metodoEnvio: envio.metodoEnvio,
+          peso: envio.peso,
+          largura: envio.largura,
+          altura: envio.altura,
+          comprimento: envio.comprimento,
+          valorDeclarado: envio.valorDeclarado,
+          moeda: envio.moeda,
+          videoUrl: envio.videoUrl,
+          trackingEnvio: envio.trackingEnvio,
+          dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
+          observacoes: envio.observacoes,
+        }}
+        fotos={envio.fotos}
+      />
     </div>
   )
 }
