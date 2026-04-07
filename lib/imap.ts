@@ -64,7 +64,7 @@ export async function fetchInbox(limit = 30): Promise<EmailSummary[]> {
           from: fromAddr?.name || fromAddr?.address || '',
           fromEmail: fromAddr?.address ?? '',
           date: envelope.date?.toISOString() ?? new Date().toISOString(),
-          seen: msg.flags.has('\\Seen'),
+          seen: msg.flags?.has('\\Seen') ?? false,
           hasAttachment: !!(msg.bodyStructure && JSON.stringify(msg.bodyStructure).includes('attachment')),
         })
       }
@@ -93,9 +93,9 @@ export async function fetchEmail(uid: number): Promise<EmailFull | null> {
       }, { uid: true })
 
       for await (const msg of messages) {
+        if (!msg.source || !msg.envelope) continue
         const parsed: ParsedMail = await simpleParser(msg.source)
         const envelope = msg.envelope
-        if (!envelope) continue
         const fromAddr = envelope.from?.[0]
 
         // Marcar como lido
