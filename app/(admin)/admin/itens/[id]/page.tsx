@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { ItemStatusForm } from '@/components/admin/ItemStatusForm'
+import { ItemEditForm } from '@/components/admin/ItemEditForm'
 
 const corArmazenagem: Record<string, string> = {
   green: '#22C55E',
@@ -69,25 +70,16 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
         {/* Dados do item */}
         <div className="col-span-2 space-y-6">
           <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold flex items-center gap-2" style={{ color: '#1A1A2E' }}>
-                <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-                Dados do Item
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
-                  {statusLabel[item.status]}
-                </span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold" style={{ background: `${corArmazenagem[cor]}20`, color: corArmazenagem[cor] }}>
-                  {dias} dias
-                </span>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
+                {statusLabel[item.status]}
+              </span>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold" style={{ background: `${corArmazenagem[cor]}20`, color: corArmazenagem[cor] }}>
+                {dias} dias
+              </span>
             </div>
-
-            <dl className="grid grid-cols-2 gap-4">
+            <dl className="grid grid-cols-2 gap-4 mb-4">
               {[
-                { label: 'Loja de Origem', value: item.lojaOrigem },
-                { label: 'Tracking', value: item.trackingLoja },
                 { label: 'Data de Entrada', value: new Date(item.dataEntrada).toLocaleDateString('pt-BR') },
                 { label: 'Data de Envio', value: item.dataEnvio ? new Date(item.dataEnvio).toLocaleDateString('pt-BR') : null },
                 { label: 'Data de Entrega', value: item.dataEntrega ? new Date(item.dataEntrega).toLocaleDateString('pt-BR') : null },
@@ -98,14 +90,9 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
                 </div>
               ))}
             </dl>
-
-            {item.observacoes && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs mb-1" style={{ color: '#9CA3AF' }}>Observações</p>
-                <p className="text-sm" style={{ color: '#374151' }}>{item.observacoes}</p>
-              </div>
-            )}
           </div>
+
+          <ItemEditForm item={{ id: item.id, descricao: item.descricao, lojaOrigem: item.lojaOrigem, trackingLoja: item.trackingLoja, observacoes: item.observacoes }} />
 
           {/* Fotos */}
           {item.fotos && item.fotos.length > 0 && (

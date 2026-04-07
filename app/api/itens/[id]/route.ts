@@ -45,6 +45,28 @@ export async function GET(
   return NextResponse.json(item)
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth()
+  if (!session || session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+
+  const item = await prisma.item.findUnique({ where: { id: params.id } })
+  if (!item) {
+    return NextResponse.json({ error: 'Item não encontrado' }, { status: 404 })
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.itemEnvio.deleteMany({ where: { itemId: params.id } })
+    await tx.item.delete({ where: { id: params.id } })
+  })
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }

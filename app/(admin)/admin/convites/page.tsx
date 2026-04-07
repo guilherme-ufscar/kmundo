@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link2, Copy, Check, Plus, Mail } from 'lucide-react'
+import { Link2, Copy, Check, Plus, Mail, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -92,6 +92,21 @@ export default function ConvitesPage() {
       toast.error('Erro de conexão. Tente novamente.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function excluirConvite(id: string) {
+    if (!window.confirm('Excluir este convite?')) return
+    try {
+      const res = await fetch(`/api/admin/convites/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setConvites(prev => prev.filter(c => c.id !== id))
+        toast.success('Convite excluído')
+      } else {
+        toast.error('Erro ao excluir')
+      }
+    } catch {
+      toast.error('Erro de conexão')
     }
   }
 
@@ -185,6 +200,7 @@ export default function ConvitesPage() {
                   <th className="px-6 py-3 text-left font-medium" style={{ color: '#6B7280' }}>Status</th>
                   <th className="px-6 py-3 text-left font-medium" style={{ color: '#6B7280' }}>Criado em</th>
                   <th className="px-6 py-3 text-left font-medium" style={{ color: '#6B7280' }}>Validade</th>
+                  <th className="px-6 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -212,6 +228,15 @@ export default function ConvitesPage() {
                       </td>
                       <td className="px-6 py-4" style={{ color: '#6B7280' }}>
                         {new Date(c.expiresAt).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => void excluirConvite(c.id)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Excluir convite"
+                        >
+                          <Trash2 className="w-4 h-4" style={{ color: '#EF4444' }} />
+                        </button>
                       </td>
                     </tr>
                   )
