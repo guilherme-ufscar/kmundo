@@ -40,7 +40,9 @@ export default function NovoEnvioPage() {
         const data = await res.json()
         const resArmazem = await fetch('/api/itens?status=EM_ARMAZEM&limite=100')
         const dataArmazem = await resArmazem.json()
-        setItensDisponiveis([...(data.itens ?? []), ...(dataArmazem.itens ?? [])])
+        const resNoArmazem = await fetch('/api/itens?status=EM_ENVIO&limite=100')
+        const dataNoArmazem = await resNoArmazem.json()
+        setItensDisponiveis([...(data.itens ?? []), ...(dataArmazem.itens ?? []), ...(dataNoArmazem.itens ?? [])])
       } catch {
         setError('Erro ao carregar itens')
       } finally {
