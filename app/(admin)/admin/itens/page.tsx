@@ -104,7 +104,7 @@ export default async function AdminItensPage({
               <table className="w-full">
                 <thead>
                   <tr style={{ background: '#F9FAFB' }}>
-                    {['Suite', 'Cliente', 'Descrição', 'Loja', 'Entrada', 'Dias', 'Peso', 'Status', ''].map((h) => (
+                    {['Suite', 'Cliente', 'Descrição', 'Loja', 'Entrada', 'Dias', 'Status', ''].map((h) => (
                       <th key={h} className="text-left px-5 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>{h}</th>
                     ))}
                   </tr>
@@ -128,9 +128,6 @@ export default async function AdminItensPage({
                         </td>
                         <td className="px-5 py-4">
                           <StorageBadge dias={dias} cor={cor} />
-                        </td>
-                        <td className="px-5 py-4 text-sm" style={{ color: '#6B7280' }}>
-                          {item.peso ? `${item.peso}kg` : '—'}
                         </td>
                         <td className="px-5 py-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
