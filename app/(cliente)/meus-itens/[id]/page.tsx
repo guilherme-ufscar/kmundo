@@ -57,7 +57,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
   const statusIndex = statusOrder.indexOf(item.status)
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 sm:p-8 max-w-3xl">
       {/* Back */}
       <Link
         href="/meus-itens"
@@ -85,9 +85,10 @@ export default async function ItemDetailPage({ params }: PageProps) {
       </div>
 
       {/* Timeline */}
-      <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      <div className="bg-white rounded-2xl p-4 sm:p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h2 className="text-sm font-semibold mb-5" style={{ color: '#6B7280' }}>LINHA DO TEMPO</h2>
-        <div className="flex items-center justify-between relative">
+        <div className="overflow-x-auto">
+        <div className="flex items-center justify-between relative min-w-72">
           {/* Line */}
           <div className="absolute top-4 left-0 right-0 h-0.5" style={{ background: '#E5E7EB' }} />
           <div
@@ -128,6 +129,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
             )
           })}
         </div>
+        </div>
       </div>
 
       {/* Details grid */}
@@ -145,7 +147,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
       {/* Datas e armazenagem */}
       <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>DATAS</h2>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <InfoRow
             icon={<Calendar className="w-4 h-4" />}
             label="Entrada no armazém"
@@ -185,7 +187,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>
             FOTOS ({item.fotos.length})
           </h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {item.fotos.map((foto, idx) => (
               <a
                 key={idx}

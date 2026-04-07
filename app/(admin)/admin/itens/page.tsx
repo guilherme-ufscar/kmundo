@@ -73,10 +73,10 @@ export default async function AdminItensPage({
   const totalPaginas = Math.ceil(total / LIMITE)
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Itens no Armazém</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Itens no Armazém</h1>
           <p style={{ color: '#6B7280' }}>{total} itens encontrados</p>
         </div>
         <div className="flex items-center gap-3">

@@ -56,10 +56,10 @@ export default async function AdminClientesPage({
   const totalPaginas = Math.ceil(total / LIMITE)
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Clientes</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Clientes</h1>
           <p style={{ color: '#6B7280' }}>{total} clientes encontradas</p>
         </div>
       </div>
@@ -68,7 +68,7 @@ export default async function AdminClientesPage({
 
       <div className="bg-white rounded-2xl mt-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         {clientes.length === 0 ? (
-          <div className="p-16 text-center">
+          <div className="p-8 sm:p-16 text-center">
             <Users className="w-16 h-16 mx-auto mb-4" style={{ color: '#E5E7EB' }} />
             <p className="font-semibold text-lg" style={{ color: '#6B7280' }}>Nenhuma cliente encontrada</p>
           </div>
