@@ -61,7 +61,6 @@ export default async function MeusItensPage() {
                     <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>Tracking</th>
                     <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>Entrada</th>
                     <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>Armazenagem</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>Peso</th>
                     <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wide" style={{ color: '#9CA3AF' }}>Status</th>
                   </tr>
                 </thead>
@@ -86,9 +85,6 @@ export default async function MeusItensPage() {
                         </td>
                         <td className="px-6 py-4">
                           <StorageBadge dias={dias} cor={cor} />
-                        </td>
-                        <td className="px-6 py-4 text-sm" style={{ color: '#6B7280' }}>
-                          {item.peso ? `${item.peso}kg` : '—'}
                         </td>
                         <td className="px-6 py-4">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[item.status] }}>
