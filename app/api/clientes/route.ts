@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
       OR: [
         { nomeCompleto: { contains: busca, mode: 'insensitive' as const } },
         { usuario: { email: { contains: busca, mode: 'insensitive' as const } } },
+        ...(!isNaN(Number(busca)) && busca.trim() !== '' ? [{ numeroDeSuite: Number(busca) }] : []),
       ],
     }),
     ...(status && { status: status as 'PENDENTE' | 'ATIVA' | 'SUSPENSA' }),
