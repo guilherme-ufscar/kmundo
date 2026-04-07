@@ -1,0 +1,165 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  senha         String
+  role          Role      @default(CLIENTE)
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+  cliente       Cliente?
+
+  @@map("usuarios")
+}
+
+model Cliente {
+  id            String        @id @default(cuid())
+  usuarioId     String        @unique
+  usuario       Usuario       @relation(fields: [usuarioId], references: [id])
+  numeroDeSuite Int           @unique
+  nomeCompleto  String
+  telefone      String
+  pais          String
+  endereco      String?
+  cidade        String?
+  cep           String?
+  fotoPerfil    String?
+  status        StatusCliente @default(ATIVA)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  itens         Item[]
+  envios        Envio[]
+
+  @@map("clientes")
+}
+
+model Item {
+  id           String      @id @default(cuid())
+  clienteId    String
+  cliente      Cliente     @relation(fields: [clienteId], references: [id])
+  descricao    String
+  lojaOrigem   String?
+  trackingLoja String?
+  fotos        String[]    @default([])
+  observacoes  String?
+  status       StatusItem  @default(RECEBIDO)
+  dataEntrada  DateTime    @default(now())
+  dataEnvio    DateTime?
+  dataEntrega  DateTime?
+  criadoEm    DateTime    @default(now())
+  atualizadoEm DateTime   @updatedAt
+  envios       ItemEnvio[]
+
+  @@map("itens")
+}
+
+model TokenRecuperacao {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usado     Boolean  @default(false)
+  criadoEm DateTime @default(now())
+
+  @@map("tokens_recuperacao")
+}
+
+model ConviteCliente {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String?
+  usado     Boolean  @default(false)
+  expiresAt DateTime
+  criadoEm DateTime @default(now())
+
+  @@map("convites_cliente")
+}
+
+model Configuracao {
+  id                String   @id @default(cuid())
+  diasGratuitos     Int      @default(30)
+  taxaDiariaArmazem Float    @default(0)
+  moedaTaxa         String   @default("USD")
+  nomeEmpresa       String   @default("KMundo Warehouse")
+  emailContato      String?
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+
+  @@map("configuracoes")
+}
+
+model Envio {
+  id                  String      @id @default(cuid())
+  clienteId           String
+  cliente             Cliente     @relation(fields: [clienteId], references: [id])
+  itens               ItemEnvio[]
+  metodoEnvio         MetodoEnvio
+  status              StatusEnvio @default(AGUARDANDO_CONFIRMACAO)
+  peso                Float?
+  largura             Float?
+  altura              Float?
+  comprimento         Float?
+  valorDeclarado      Float?
+  moeda               String?     @default("KRW")
+  fotos               String[]    @default([])
+  videoUrl            String?
+  trackingEnvio       String?
+  dataLimitePagamento DateTime?
+  observacoes         String?
+  confirmadoCliente   Boolean     @default(false)
+  criadoEm           DateTime    @default(now())
+  atualizadoEm       DateTime    @updatedAt
+
+  @@map("envios")
+}
+
+model ItemEnvio {
+  id      String @id @default(cuid())
+  envioId String
+  envio   Envio  @relation(fields: [envioId], references: [id])
+  itemId  String
+  item    Item   @relation(fields: [itemId], references: [id])
+
+  @@map("itens_envio")
+}
+
+enum Role {
+  ADMIN
+  CLIENTE
+}
+
+enum StatusCliente {
+  PENDENTE
+  ATIVA
+  SUSPENSA
+}
+
+enum StatusItem {
+  RECEBIDO
+  EM_ARMAZEM
+  EM_ENVIO
+  ENVIADO
+  ENTREGUE
+}
+
+enum MetodoEnvio {
+  FEDEX
+  EMS
+  ENVIO_EM_GRUPO
+}
+
+enum StatusEnvio {
+  AGUARDANDO_CONFIRMACAO
+  CONFIRMADO
+  PAGO
+  ENVIADO
+  ENTREGUE
+}
