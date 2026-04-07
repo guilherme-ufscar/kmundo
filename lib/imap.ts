@@ -56,6 +56,7 @@ export async function fetchInbox(limit = 30): Promise<EmailSummary[]> {
 
       for await (const msg of messages) {
         const envelope = msg.envelope
+        if (!envelope) continue
         const fromAddr = envelope.from?.[0]
         emails.unshift({
           uid: msg.uid,
@@ -94,6 +95,7 @@ export async function fetchEmail(uid: number): Promise<EmailFull | null> {
       for await (const msg of messages) {
         const parsed: ParsedMail = await simpleParser(msg.source)
         const envelope = msg.envelope
+        if (!envelope) continue
         const fromAddr = envelope.from?.[0]
 
         // Marcar como lido
