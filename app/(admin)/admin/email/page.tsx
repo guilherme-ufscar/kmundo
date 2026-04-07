@@ -5,7 +5,6 @@ import { Mail, Send, RefreshCw, Inbox, ChevronLeft, Reply, Loader2, PenLine, X }
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 interface EmailSummary {
   uid: number
