@@ -70,7 +70,7 @@ export function EnvioAdminForm({ envio }: Props) {
       altura: envio.altura?.toString() ?? '',
       comprimento: envio.comprimento?.toString() ?? '',
       valorDeclarado: envio.valorDeclarado?.toString() ?? '',
-      moeda: envio.moeda ?? 'KRW',
+      moeda: envio.moeda ?? 'BRL',
       videoUrl: envio.videoUrl ?? '',
       trackingEnvio: envio.trackingEnvio ?? '',
       dataLimitePagamento: envio.dataLimitePagamento
@@ -90,7 +90,7 @@ export function EnvioAdminForm({ envio }: Props) {
       if (data.comprimento) body.comprimento = parseFloat(data.comprimento)
       if (data.valorDeclarado && envio.metodoEnvio !== 'ENVIO_EM_GRUPO') {
         body.valorDeclarado = parseFloat(data.valorDeclarado)
-        body.moeda = data.moeda || 'KRW'
+        body.moeda = data.moeda || 'BRL'
       }
       if (data.videoUrl) body.videoUrl = data.videoUrl
       if (data.trackingEnvio) body.trackingEnvio = data.trackingEnvio
