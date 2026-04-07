@@ -109,10 +109,10 @@ export async function fetchEmail(uid: number): Promise<EmailFull | null> {
           date: envelope.date?.toISOString() ?? new Date().toISOString(),
           seen: true,
           hasAttachment: (parsed.attachments?.length ?? 0) > 0,
-          to: parsed.to?.text ?? '',
+          to: Array.isArray(parsed.to) ? parsed.to.map(a => a.text).join(', ') : (parsed.to?.text ?? ''),
           text: parsed.text ?? null,
           html: parsed.html || null,
-          replyTo: parsed.replyTo?.text ?? null,
+          replyTo: Array.isArray(parsed.replyTo) ? parsed.replyTo.map(a => a.text).join(', ') : (parsed.replyTo?.text ?? null),
         }
       }
     } finally {
