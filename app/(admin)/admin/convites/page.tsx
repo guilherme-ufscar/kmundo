@@ -40,6 +40,7 @@ export default function ConvitesPage() {
   const [convites, setConvites] = useState<Convite[]>([])
   const [loadingList, setLoadingList] = useState(true)
   const [linkGerado, setLinkGerado] = useState('')
+  const [emailEnviado, setEmailEnviado] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -66,6 +67,7 @@ export default function ConvitesPage() {
   async function onSubmit(data: GerarConviteForm) {
     setSubmitting(true)
     setLinkGerado('')
+    setEmailEnviado('')
     try {
       const res = await fetch('/api/admin/convites', {
         method: 'POST',
@@ -78,8 +80,13 @@ export default function ConvitesPage() {
         return
       }
       setLinkGerado(json.link ?? '')
+      if (data.email) {
+        setEmailEnviado(data.email)
+        toast.success(`Convite gerado e email enviado para ${data.email}!`)
+      } else {
+        toast.success('Convite gerado com sucesso!')
+      }
       reset()
-      toast.success('Convite gerado com sucesso!')
       void fetchConvites()
     } catch {
       toast.error('Erro de conexão. Tente novamente.')
@@ -135,16 +142,26 @@ export default function ConvitesPage() {
         </form>
 
         {linkGerado && (
-          <div className="mt-5 p-4 rounded-xl flex items-center gap-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            <Link2 className="w-5 h-5 shrink-0" style={{ color: '#22C55E' }} />
-            <span className="flex-1 text-sm font-mono break-all" style={{ color: '#166534' }}>{linkGerado}</span>
-            <button
-              onClick={() => void copiarLink()}
-              className="shrink-0 p-2 rounded-lg transition-colors hover:bg-green-100"
-              title="Copiar link"
-            >
-              {copied ? <Check className="w-4 h-4" style={{ color: '#22C55E' }} /> : <Copy className="w-4 h-4" style={{ color: '#22C55E' }} />}
-            </button>
+          <div className="mt-5 space-y-3">
+            {emailEnviado && (
+              <div className="p-3 rounded-xl flex items-center gap-2" style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+                <Mail className="w-4 h-4 shrink-0" style={{ color: '#3B82F6' }} />
+                <span className="text-sm" style={{ color: '#1D4ED8' }}>
+                  Email de convite enviado para <strong>{emailEnviado}</strong>
+                </span>
+              </div>
+            )}
+            <div className="p-4 rounded-xl flex items-center gap-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+              <Link2 className="w-5 h-5 shrink-0" style={{ color: '#22C55E' }} />
+              <span className="flex-1 text-sm font-mono break-all" style={{ color: '#166534' }}>{linkGerado}</span>
+              <button
+                onClick={() => void copiarLink()}
+                className="shrink-0 p-2 rounded-lg transition-colors hover:bg-green-100"
+                title="Copiar link"
+              >
+                {copied ? <Check className="w-4 h-4" style={{ color: '#22C55E' }} /> : <Copy className="w-4 h-4" style={{ color: '#22C55E' }} />}
+              </button>
+            </div>
           </div>
         )}
       </div>
