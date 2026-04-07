@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Camera } from 'lucide-react'
 
 const formSchema = z.object({
-  status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'PAGO', 'ENVIADO', 'ENTREGUE']),
+  status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']),
   peso: z.string().optional(),
   largura: z.string().optional(),
   altura: z.string().optional(),
@@ -30,7 +30,8 @@ type FormData = z.infer<typeof formSchema>
 const statusOpcoes = [
   { value: 'AGUARDANDO_CONFIRMACAO', label: 'Aguardando confirmação', color: '#F59E0B' },
   { value: 'CONFIRMADO', label: 'Confirmado', color: '#3B82F6' },
-  { value: 'PAGO', label: 'Pago', color: '#8B5CF6' },
+  { value: 'EMBALANDO', label: 'Embalando', color: '#F97316' },
+  { value: 'PAGO', label: 'Aguardando pagamento', color: '#8B5CF6' },
   { value: 'ENVIADO', label: 'Enviado', color: '#FF6B9D' },
   { value: 'ENTREGUE', label: 'Entregue', color: '#22C55E' },
 ]
@@ -65,7 +66,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
   const { register, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      status: envio.status as FormData['status'],
+      status: envio.status as 'AGUARDANDO_CONFIRMACAO' | 'CONFIRMADO' | 'EMBALANDO' | 'PAGO' | 'ENVIADO' | 'ENTREGUE',
       peso: envio.peso?.toString() ?? '',
       largura: envio.largura?.toString() ?? '',
       altura: envio.altura?.toString() ?? '',

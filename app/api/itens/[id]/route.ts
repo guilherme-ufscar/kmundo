@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { notificarClienteStatusItem } from '@/lib/email'
 
 const patchItemSchema = z.object({
   status: z.enum(['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'ENVIADO', 'ENTREGUE']).optional(),
@@ -72,8 +73,19 @@ export async function PATCH(
   const atualizado = await prisma.item.update({
     where: { id: params.id },
     data,
-    include: { cliente: { select: { numeroDeSuite: true, nomeCompleto: true } } },
+    include: { cliente: { include: { usuario: { select: { email: true } } } } },
   })
+
+  if (parsed.data.status && parsed.data.status !== item.status) {
+    notificarClienteStatusItem({
+      emailCliente: atualizado.cliente.usuario.email,
+      nomeCliente: atualizado.cliente.nomeCompleto,
+      suite: atualizado.cliente.numeroDeSuite,
+      descricao: atualizado.descricao,
+      novoStatus: parsed.data.status,
+      itemId: atualizado.id,
+    }).catch(console.error)
+  }
 
   return NextResponse.json(atualizado)
 }

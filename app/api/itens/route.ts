@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { itemSchema } from '@/lib/validations/item'
+import { notificarClienteNovoItem, notificarAdminNovoItem } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -21,8 +22,18 @@ export async function POST(req: NextRequest) {
       ...parsed.data,
       dataEntrada: new Date(),
     },
-    include: { cliente: true },
+    include: { cliente: { include: { usuario: { select: { email: true } } } } },
   })
+
+  const emailCliente = item.cliente.usuario.email
+  const suite = item.cliente.numeroDeSuite
+  const nomeCliente = item.cliente.nomeCompleto
+
+  // Notificações em background (não bloqueia a resposta)
+  Promise.all([
+    notificarClienteNovoItem({ emailCliente, nomeCliente, suite, descricao: item.descricao, lojaOrigem: item.lojaOrigem, itemId: item.id }),
+    notificarAdminNovoItem({ nomeCliente, suite, descricao: item.descricao, lojaOrigem: item.lojaOrigem, itemId: item.id }),
+  ]).catch(console.error)
 
   return NextResponse.json(item, { status: 201 })
 }

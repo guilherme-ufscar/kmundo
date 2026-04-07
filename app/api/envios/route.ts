@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { notificarAdminNovoEnvio, notificarClienteEnvioSolicitado } from '@/lib/email'
 
 const criarEnvioSchema = z.object({
   metodoEnvio: z.enum(['FEDEX', 'EMS', 'ENVIO_EM_GRUPO']),
@@ -49,9 +50,19 @@ export async function POST(req: NextRequest) {
     },
     include: {
       itens: { include: { item: true } },
-      cliente: { select: { nomeCompleto: true, numeroDeSuite: true } },
+      cliente: { include: { usuario: { select: { email: true } } } },
     },
   })
+
+  const emailCliente = envio.cliente.usuario.email
+  const nomeCliente = envio.cliente.nomeCompleto
+  const suite = envio.cliente.numeroDeSuite
+  const nomesItens = envio.itens.map(i => i.item.descricao)
+
+  Promise.all([
+    notificarAdminNovoEnvio({ nomeCliente, suite, metodo: metodoEnvio, itens: nomesItens, envioId: envio.id }),
+    notificarClienteEnvioSolicitado({ emailCliente, nomeCliente, suite, metodo: metodoEnvio, itens: nomesItens, envioId: envio.id }),
+  ]).catch(console.error)
 
   return NextResponse.json(envio, { status: 201 })
 }
