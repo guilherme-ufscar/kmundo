@@ -39,6 +39,7 @@ function CadastroContent() {
   const [loading, setLoading] = useState(false)
   const [suiteGerada, setSuiteGerada] = useState<number | null>(null)
 
+  const [countdown, setCountdown] = useState(5)
   const [tokenStatus, setTokenStatus] = useState<'validating' | 'valid' | 'invalid'>('validating')
   const [tokenError, setTokenError] = useState('')
   const [prefillEmail, setPrefillEmail] = useState('')
@@ -98,6 +99,16 @@ function CadastroContent() {
       }
 
       setSuiteGerada(json.numeroDeSuite)
+      // Redirecionar para login após 5 segundos
+      let count = 5
+      const interval = setInterval(() => {
+        count -= 1
+        setCountdown(count)
+        if (count === 0) {
+          clearInterval(interval)
+          router.push('/login')
+        }
+      }, 1000)
     } catch {
       setError('Erro de conexão. Tente novamente.')
     } finally {
@@ -159,6 +170,9 @@ function CadastroContent() {
             <p className="text-xs mt-3" style={{ color: '#9CA3AF' }}>Guarde esse número — é seu identificador único</p>
           </div>
 
+          <p className="text-sm mb-4" style={{ color: '#9CA3AF' }}>
+            Redirecionando para o login em <strong style={{ color: '#FF6B9D' }}>{countdown}s</strong>...
+          </p>
           <Button
             onClick={() => router.push('/login')}
             className="w-full h-11 font-semibold text-white rounded-xl"
