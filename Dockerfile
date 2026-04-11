@@ -6,6 +6,16 @@ FROM base AS deps
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 
+# ── Dev stage (sem build, código montado via volume) ──────────────────────────
+FROM deps AS dev
+ENV NODE_ENV=development
+COPY prisma ./prisma
+COPY docker/entrypoint.dev.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+EXPOSE 3000
+ENTRYPOINT ["/entrypoint.sh"]
+
+# ── Production stages ─────────────────────────────────────────────────────────
 FROM deps AS builder
 COPY . .
 RUN npx prisma generate
