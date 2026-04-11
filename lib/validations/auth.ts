@@ -14,7 +14,6 @@ export const cadastroSchema = z.object({
   endereco: z.string().optional(),
   cidade: z.string().optional(),
   cep: z.string().optional(),
-  token: z.string().min(1, 'Token de convite obrigatório'),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>

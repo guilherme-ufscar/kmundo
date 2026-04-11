@@ -208,7 +208,13 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center space-y-2">
+              <p className="text-sm" style={{ color: '#6B7280' }}>
+                Não tem conta?{' '}
+                <Link href="/cadastro" className="font-semibold hover:opacity-80" style={{ color: '#FF6B9D' }}>
+                  Criar conta →
+                </Link>
+              </p>
               <p className="text-sm" style={{ color: '#6B7280' }}>
                 Entre em contato:{' '}
                 <a href="tel:+820107768901" className="font-semibold hover:opacity-80" style={{ color: '#FF6B9D' }}>
