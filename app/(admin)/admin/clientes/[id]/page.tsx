@@ -74,9 +74,13 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
               nomeCompleto: cliente.nomeCompleto,
               telefone: cliente.telefone,
               pais: cliente.pais,
-              cidade: cliente.cidade,
               cep: cliente.cep,
               endereco: cliente.endereco,
+              numero: cliente.numero,
+              complemento: cliente.complemento,
+              bairro: cliente.bairro,
+              cidade: cliente.cidade,
+              estado: cliente.estado,
               status: cliente.status,
             }}
             email={cliente.usuario.email}

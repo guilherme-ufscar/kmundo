@@ -7,9 +7,13 @@ const perfilSchema = z.object({
   nomeCompleto: z.string().min(2).optional(),
   telefone: z.string().min(8).optional(),
   pais: z.string().min(2).optional(),
-  cidade: z.string().optional(),
   cep: z.string().optional(),
   endereco: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
   status: z.enum(['PENDENTE', 'ATIVA', 'SUSPENSA']).optional(),
 })
 

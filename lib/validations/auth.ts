@@ -11,9 +11,13 @@ export const cadastroSchema = z.object({
   nomeCompleto: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
   telefone: z.string().min(8, 'Telefone inválido'),
   pais: z.string().min(2, 'País obrigatório'),
-  endereco: z.string().optional(),
-  cidade: z.string().optional(),
   cep: z.string().optional(),
+  endereco: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>

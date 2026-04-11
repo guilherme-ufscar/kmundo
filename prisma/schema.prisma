@@ -28,9 +28,13 @@ model Cliente {
   nomeCompleto  String
   telefone      String
   pais          String
-  endereco      String?
-  cidade        String?
   cep           String?
+  endereco      String?
+  numero        String?
+  complemento   String?
+  bairro        String?
+  cidade        String?
+  estado        String?
   fotoPerfil    String?
   status        StatusCliente @default(ATIVA)
   criadoEm     DateTime      @default(now())
