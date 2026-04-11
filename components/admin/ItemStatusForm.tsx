@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-type StatusItem = 'RECEBIDO' | 'EM_ARMAZEM' | 'EM_ENVIO' | 'ENVIADO' | 'ENTREGUE'
+type StatusItem = 'RECEBIDO' | 'EM_ARMAZEM' | 'EM_ENVIO' | 'PREPARANDO_ENVIO' | 'ENVIADO' | 'ENTREGUE'
 
 const opcoes: { value: StatusItem; label: string; color: string; bg: string }[] = [
   { value: 'RECEBIDO', label: 'Pagamento Feito', color: '#3B82F6', bg: '#EFF6FF' },
   { value: 'EM_ARMAZEM', label: 'Comprado', color: '#FF6B9D', bg: '#FFF1F5' },
   { value: 'EM_ENVIO', label: 'No armazem', color: '#F59E0B', bg: '#FFFBEB' },
+  { value: 'PREPARANDO_ENVIO', label: 'Preparando para o envio', color: '#F97316', bg: '#FFF7ED' },
   { value: 'ENVIADO', label: 'Enviado', color: '#8B5CF6', bg: '#F5F3FF' },
   { value: 'ENTREGUE', label: 'Entregue', color: '#22C55E', bg: '#F0FDF4' },
 ]

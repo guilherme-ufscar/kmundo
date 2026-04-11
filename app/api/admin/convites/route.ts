@@ -32,12 +32,23 @@ export async function POST(req: NextRequest) {
 
   const link = `${process.env.NEXTAUTH_URL ?? 'https://kmundowarehouse.com'}/cadastro?token=${token}`
 
-  // Enviar email de convite se email foi fornecido
+  let emailEnviado = false
+  let emailErro: string | null = null
+
   if (email) {
-    enviarEmailConvite(email, link, expiresAt).catch(console.error)
+    try {
+      await enviarEmailConvite(email, link, expiresAt)
+      emailEnviado = true
+    } catch (err) {
+      emailErro = err instanceof Error ? err.message : 'Erro desconhecido ao enviar email'
+      console.error('[convite] falha ao enviar email:', emailErro)
+    }
   }
 
-  return NextResponse.json({ token: convite.token, link, expiresAt: convite.expiresAt }, { status: 201 })
+  return NextResponse.json(
+    { token: convite.token, link, expiresAt: convite.expiresAt, emailEnviado, emailErro },
+    { status: 201 }
+  )
 }
 
 export async function GET() {

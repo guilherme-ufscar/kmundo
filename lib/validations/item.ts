@@ -10,7 +10,7 @@ export const itemSchema = z.object({
 })
 
 export const atualizarStatusSchema = z.object({
-  status: z.enum(['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'ENVIADO', 'ENTREGUE']),
+  status: z.enum(['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'PREPARANDO_ENVIO', 'ENVIADO', 'ENTREGUE']),
 })
 
 export type ItemInput = z.infer<typeof itemSchema>

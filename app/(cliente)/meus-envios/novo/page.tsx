@@ -29,6 +29,7 @@ export default function NovoEnvioPage() {
   const [itensDisponiveis, setItensDisponiveis] = useState<ItemDisponivel[]>([])
   const [itensSelecionados, setItensSelecionados] = useState<Set<string>>(new Set())
   const [valorDeclarado, setValorDeclarado] = useState('')
+  const [aceitouTermos, setAceitouTermos] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [error, setError] = useState('')
@@ -64,6 +65,7 @@ export default function NovoEnvioPage() {
   async function handleSubmit() {
     if (!metodo) { setError('Selecione o método de envio'); return }
     if (itensSelecionados.size === 0) { setError('Selecione ao menos um item'); return }
+    if (!aceitouTermos) { setError('Você deve aceitar os Termos de Uso para continuar'); return }
 
     setSalvando(true)
     setError('')
@@ -211,10 +213,37 @@ export default function NovoEnvioPage() {
         </div>
       )}
 
+      {/* Termos de Uso */}
+      <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={aceitouTermos}
+            onChange={(e) => {
+              setAceitouTermos(e.target.checked)
+              if (e.target.checked) setError('')
+            }}
+            className="mt-0.5 w-4 h-4 rounded border-gray-300 cursor-pointer accent-pink-500 flex-shrink-0"
+          />
+          <span className="text-sm leading-relaxed" style={{ color: '#374151' }}>
+            Li e concordo com os{' '}
+            <Link
+              href="/termos"
+              target="_blank"
+              className="font-semibold underline hover:opacity-80 transition-opacity"
+              style={{ color: '#FF6B9D' }}
+            >
+              Termos de Uso e Condições do Serviço
+            </Link>
+            {' '}e estou ciente das condições desta solicitação de envio.
+          </span>
+        </label>
+      </div>
+
       <Button
         type="button"
         onClick={handleSubmit}
-        disabled={salvando || !metodo || itensSelecionados.size === 0}
+        disabled={salvando || !metodo || itensSelecionados.size === 0 || !aceitouTermos}
         className="w-full h-12 font-semibold text-white rounded-xl"
         style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '12px' }}
       >

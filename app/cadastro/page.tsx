@@ -21,6 +21,9 @@ const cadastroSchema = z.object({
   pais: z.string().min(2, 'País obrigatório'),
   cidade: z.string().optional(),
   cep: z.string().optional(),
+  aceitouTermos: z.boolean().refine((v) => v === true, {
+    message: 'Você deve ler e aceitar os Termos de Uso para continuar',
+  }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: 'As senhas não coincidem',
   path: ['confirmPassword'],
@@ -307,7 +310,35 @@ function CadastroContent() {
               </div>
             </div>
 
-            <div className="mt-8">
+            {/* Termos de Uso */}
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 cursor-pointer accent-pink-500 flex-shrink-0"
+                  {...register('aceitouTermos')}
+                />
+                <span className="text-sm leading-relaxed" style={{ color: '#374151' }}>
+                  Li e concordo com os{' '}
+                  <Link
+                    href="/termos"
+                    target="_blank"
+                    className="font-semibold underline hover:opacity-80 transition-opacity"
+                    style={{ color: '#FF6B9D' }}
+                  >
+                    Termos de Uso e Condições do Serviço
+                  </Link>
+                  {' '}da KMundo Warehouse. Entendo que estes termos funcionam como um contrato entre mim e a empresa.
+                </span>
+              </label>
+              {errors.aceitouTermos && (
+                <p className="text-xs mt-2 ml-7" style={{ color: '#EF4444' }}>
+                  {errors.aceitouTermos.message}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-5">
               <Button
                 type="submit"
                 disabled={loading}

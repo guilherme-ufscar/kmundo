@@ -14,6 +14,7 @@ const statusOpcoes = [
   { value: 'RECEBIDO', label: 'Pagamento Feito' },
   { value: 'EM_ARMAZEM', label: 'Comprado' },
   { value: 'EM_ENVIO', label: 'No armazem' },
+  { value: 'PREPARANDO_ENVIO', label: 'Preparando para o envio' },
   { value: 'ENVIADO', label: 'Enviado' },
   { value: 'ENTREGUE', label: 'Entregue' },
 ]

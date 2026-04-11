@@ -5,12 +5,13 @@ import { z } from 'zod'
 import { notificarClienteStatusItem } from '@/lib/email'
 
 const patchItemSchema = z.object({
-  status: z.enum(['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'ENVIADO', 'ENTREGUE']).optional(),
+  status: z.enum(['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'PREPARANDO_ENVIO', 'ENVIADO', 'ENTREGUE']).optional(),
   descricao: z.string().min(1).max(255).optional(),
   lojaOrigem: z.string().optional(),
   trackingLoja: z.string().optional(),
   observacoes: z.string().optional(),
   fotos: z.array(z.string()).optional(),
+  dataEntrada: z.string().datetime().optional(),
   dataEnvio: z.string().datetime().optional(),
   dataEntrega: z.string().datetime().optional(),
 })
@@ -89,8 +90,14 @@ export async function PATCH(
   }
 
   const data: Record<string, unknown> = { ...parsed.data }
+  if (parsed.data.dataEntrada) data.dataEntrada = new Date(parsed.data.dataEntrada)
   if (parsed.data.dataEnvio) data.dataEnvio = new Date(parsed.data.dataEnvio)
   if (parsed.data.dataEntrega) data.dataEntrega = new Date(parsed.data.dataEntrega)
+
+  // Quando item chega no armazém, registra a data de entrada automaticamente
+  if (parsed.data.status === 'EM_ARMAZEM' && item.status !== 'EM_ARMAZEM' && !parsed.data.dataEntrada) {
+    data.dataEntrada = new Date()
+  }
 
   const atualizado = await prisma.item.update({
     where: { id: params.id },
