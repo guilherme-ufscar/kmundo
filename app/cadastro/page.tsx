@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,8 +19,13 @@ const cadastroSchema = z.object({
   confirmPassword: z.string(),
   telefone: z.string().min(8, 'Telefone inválido'),
   pais: z.string().min(2, 'País obrigatório'),
-  cidade: z.string().optional(),
   cep: z.string().optional(),
+  endereco: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
   aceitouTermos: z.boolean().refine((v) => v === true, {
     message: 'Você deve ler e aceitar os Termos de Uso para continuar',
   }),
@@ -39,10 +44,31 @@ export default function CadastroPage() {
   const [loading, setLoading] = useState(false)
   const [suiteGerada, setSuiteGerada] = useState<number | null>(null)
   const [countdown, setCountdown] = useState(5)
+  const [buscandoCep, setBuscandoCep] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CadastroForm>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<CadastroForm>({
     resolver: zodResolver(cadastroSchema),
   })
+
+  async function buscarCep(cep: string) {
+    const cepLimpo = cep.replace(/\D/g, '')
+    if (cepLimpo.length !== 8) return
+    setBuscandoCep(true)
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      const data = await res.json()
+      if (!data.erro) {
+        setValue('endereco', data.logradouro || '')
+        setValue('bairro', data.bairro || '')
+        setValue('cidade', data.localidade || '')
+        setValue('estado', data.uf || '')
+      }
+    } catch {
+      // silently fail — user can fill manually
+    } finally {
+      setBuscandoCep(false)
+    }
+  }
 
   async function onSubmit(data: CadastroForm) {
     setError('')
@@ -57,8 +83,13 @@ export default function CadastroPage() {
           nomeCompleto: data.nomeCompleto,
           telefone: data.telefone,
           pais: data.pais,
-          cidade: data.cidade,
           cep: data.cep,
+          endereco: data.endereco,
+          numero: data.numero,
+          complemento: data.complemento,
+          bairro: data.bairro,
+          cidade: data.cidade,
+          estado: data.estado,
         }),
       })
 
@@ -223,18 +254,64 @@ export default function CadastroPage() {
                 <Label className="text-sm font-medium" style={{ color: '#374151' }}>País de residência</Label>
                 <div className="relative mt-1.5">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
-                  <Input placeholder="Ex: Brazil" className="pl-10 h-11" style={{ borderRadius: '8px' }} {...register('pais')} />
+                  <Input placeholder="Ex: Brasil" className="pl-10 h-11" style={{ borderRadius: '8px' }} {...register('pais')} />
                 </div>
                 {errors.pais && <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.pais.message}</p>}
+              </div>
+
+              {/* CEP */}
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>CEP <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <div className="relative mt-1.5">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
+                  <Input
+                    placeholder="00000-000"
+                    className="pl-10 pr-10 h-11"
+                    style={{ borderRadius: '8px' }}
+                    {...register('cep')}
+                    onBlur={(e) => buscarCep(e.target.value)}
+                  />
+                  {buscandoCep && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" style={{ color: '#9CA3AF' }} />
+                  )}
+                </div>
+                {!buscandoCep && <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>Digite o CEP para preencher o endereço automaticamente</p>}
+              </div>
+
+              {/* Endereço */}
+              <div className="md:col-span-2">
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>Endereço / Logradouro <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <div className="relative mt-1.5">
+                  <Input placeholder="Rua, Avenida, etc." className="h-11" style={{ borderRadius: '8px' }} {...register('endereco')} />
+                </div>
+              </div>
+
+              {/* Número e Complemento */}
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>Número <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <Input placeholder="123" className="mt-1.5 h-11" style={{ borderRadius: '8px' }} {...register('numero')} />
+              </div>
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>Complemento <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <Input placeholder="Apto, Bloco, etc." className="mt-1.5 h-11" style={{ borderRadius: '8px' }} {...register('complemento')} />
+              </div>
+
+              {/* Bairro */}
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>Bairro <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <Input placeholder="Bairro" className="mt-1.5 h-11" style={{ borderRadius: '8px' }} {...register('bairro')} />
               </div>
 
               {/* Cidade */}
               <div>
                 <Label className="text-sm font-medium" style={{ color: '#374151' }}>Cidade <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
-                <div className="relative mt-1.5">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
-                  <Input placeholder="Sua cidade" className="pl-10 h-11" style={{ borderRadius: '8px' }} {...register('cidade')} />
-                </div>
+                <Input placeholder="Sua cidade" className="mt-1.5 h-11" style={{ borderRadius: '8px' }} {...register('cidade')} />
+              </div>
+
+              {/* Estado */}
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>Estado (UF) <span style={{ color: '#9CA3AF' }}>(opcional)</span></Label>
+                <Input placeholder="SP" className="mt-1.5 h-11" style={{ borderRadius: '8px' }} {...register('estado')} />
               </div>
             </div>
 
