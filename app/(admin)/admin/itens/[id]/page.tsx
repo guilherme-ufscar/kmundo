@@ -18,6 +18,7 @@ const statusLabel: Record<string, string> = {
   RECEBIDO: 'Pagamento Feito',
   EM_ARMAZEM: 'Comprado',
   EM_ENVIO: 'No armazem',
+  PREPARANDO_ENVIO: 'Preparando para o envio',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }
@@ -26,6 +27,7 @@ const statusColors: Record<string, string> = {
   RECEBIDO: '#3B82F6',
   EM_ARMAZEM: '#FF6B9D',
   EM_ENVIO: '#F59E0B',
+  PREPARANDO_ENVIO: '#F97316',
   ENVIADO: '#8B5CF6',
   ENTREGUE: '#22C55E',
 }
@@ -92,26 +94,8 @@ export default async function ItemDetalhePage({ params }: { params: { id: string
             </dl>
           </div>
 
-          <ItemEditForm item={{ id: item.id, descricao: item.descricao, lojaOrigem: item.lojaOrigem, trackingLoja: item.trackingLoja, observacoes: item.observacoes }} />
+          <ItemEditForm item={{ id: item.id, descricao: item.descricao, lojaOrigem: item.lojaOrigem, trackingLoja: item.trackingLoja, observacoes: item.observacoes, dataEntrada: item.dataEntrada, fotos: item.fotos }} />
 
-          {/* Fotos */}
-          {item.fotos && item.fotos.length > 0 && (
-            <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Fotos ({item.fotos.length})</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {item.fotos.map((foto, idx) => (
-                  <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={foto}
-                      alt={`Foto ${idx + 1}`}
-                      className="w-full aspect-square object-cover rounded-xl hover:opacity-90 transition-opacity"
-                    />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Status form */}

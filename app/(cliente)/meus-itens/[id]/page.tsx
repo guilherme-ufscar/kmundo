@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
-  Package,
   Store,
   Tag,
   Calendar,
@@ -14,11 +13,13 @@ import {
   Circle,
 } from 'lucide-react'
 import { StorageBadge } from '@/components/cliente/StorageBadge'
+import { FotoGaleria } from '@/components/FotoGaleria'
 
 const statusLabel: Record<string, string> = {
   RECEBIDO: 'Pagamento Feito',
   EM_ARMAZEM: 'Comprado',
   EM_ENVIO: 'No armazem',
+  PREPARANDO_ENVIO: 'Preparando para o envio',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }
@@ -27,11 +28,12 @@ const statusColors: Record<string, string> = {
   RECEBIDO: '#3B82F6',
   EM_ARMAZEM: '#FF6B9D',
   EM_ENVIO: '#F59E0B',
+  PREPARANDO_ENVIO: '#F97316',
   ENVIADO: '#8B5CF6',
   ENTREGUE: '#22C55E',
 }
 
-const statusOrder = ['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'ENVIADO', 'ENTREGUE']
+const statusOrder = ['RECEBIDO', 'EM_ARMAZEM', 'EM_ENVIO', 'PREPARANDO_ENVIO', 'ENVIADO', 'ENTREGUE']
 
 interface PageProps {
   params: { id: string }
@@ -87,9 +89,56 @@ export default async function ItemDetailPage({ params }: PageProps) {
       {/* Timeline */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h2 className="text-sm font-semibold mb-5" style={{ color: '#6B7280' }}>LINHA DO TEMPO</h2>
-        <div className="overflow-x-auto">
-        <div className="flex items-center justify-between relative min-w-72">
-          {/* Line */}
+
+        {/* Mobile: vertical */}
+        <div className="flex flex-col gap-0 sm:hidden">
+          {statusOrder.map((s, i) => {
+            const done = i <= statusIndex
+            const active = i === statusIndex
+            const isLast = i === statusOrder.length - 1
+            return (
+              <div key={s} className="flex items-stretch gap-3">
+                {/* Dot + vertical line */}
+                <div className="flex flex-col items-center">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center border-2 flex-shrink-0 transition-all"
+                    style={{
+                      background: done ? (active ? '#FF6B9D' : '#F0FDF4') : 'white',
+                      borderColor: done ? (active ? '#FF6B9D' : '#22C55E') : '#E5E7EB',
+                    }}
+                  >
+                    {done && !active ? (
+                      <CheckCircle className="w-4 h-4" style={{ color: '#22C55E' }} />
+                    ) : active ? (
+                      <Circle className="w-3 h-3 fill-white text-white" />
+                    ) : (
+                      <Circle className="w-3 h-3" style={{ color: '#E5E7EB' }} />
+                    )}
+                  </div>
+                  {!isLast && (
+                    <div
+                      className="w-0.5 flex-1 my-1"
+                      style={{ background: i < statusIndex ? '#22C55E' : '#E5E7EB', minHeight: '20px' }}
+                    />
+                  )}
+                </div>
+                {/* Label */}
+                <div className="flex items-start pt-1.5 pb-4">
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: done ? (active ? '#FF6B9D' : '#22C55E') : '#9CA3AF' }}
+                  >
+                    {statusLabel[s]}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop: horizontal */}
+        <div className="hidden sm:flex items-start justify-between relative">
+          {/* Track line */}
           <div className="absolute top-4 left-0 right-0 h-0.5" style={{ background: '#E5E7EB' }} />
           <div
             className="absolute top-4 left-0 h-0.5 transition-all"
@@ -103,7 +152,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
             const done = i <= statusIndex
             const active = i === statusIndex
             return (
-              <div key={s} className="relative flex flex-col items-center gap-2 z-10">
+              <div key={s} className="relative flex flex-col items-center gap-2 z-10 flex-1">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all"
                   style={{
@@ -120,15 +169,14 @@ export default async function ItemDetailPage({ params }: PageProps) {
                   )}
                 </div>
                 <span
-                  className="text-xs font-medium text-center w-16"
-                  style={{ color: done ? (active ? '#FF6B9D' : '#22C55E') : '#9CA3AF' }}
+                  className="text-xs font-medium text-center leading-tight"
+                  style={{ color: done ? (active ? '#FF6B9D' : '#22C55E') : '#9CA3AF', maxWidth: '72px' }}
                 >
                   {statusLabel[s]}
                 </span>
               </div>
             )
           })}
-        </div>
         </div>
       </div>
 
@@ -144,31 +192,33 @@ export default async function ItemDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Datas e armazenagem */}
-      <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>DATAS</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <InfoRow
-            icon={<Calendar className="w-4 h-4" />}
-            label="Entrada no armazém"
-            value={new Date(item.dataEntrada).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-          />
-          {item.dataEnvio && (
+      {/* Datas e armazenagem — só exibe quando o item já chegou no armazém */}
+      {item.status !== 'RECEBIDO' && (
+        <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>DATAS</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <InfoRow
               icon={<Calendar className="w-4 h-4" />}
-              label="Data de envio"
-              value={new Date(item.dataEnvio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              label="Entrada no armazém"
+              value={new Date(item.dataEntrada).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
             />
-          )}
-          {item.dataEntrega && (
-            <InfoRow
-              icon={<Calendar className="w-4 h-4" />}
-              label="Data de entrega"
-              value={new Date(item.dataEntrega).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-            />
-          )}
+            {item.dataEnvio && (
+              <InfoRow
+                icon={<Calendar className="w-4 h-4" />}
+                label="Data de envio"
+                value={new Date(item.dataEnvio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              />
+            )}
+            {item.dataEntrega && (
+              <InfoRow
+                icon={<Calendar className="w-4 h-4" />}
+                label="Data de entrega"
+                value={new Date(item.dataEntrega).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Observações */}
       {item.observacoes && (
@@ -182,42 +232,12 @@ export default async function ItemDetailPage({ params }: PageProps) {
       )}
 
       {/* Fotos */}
-      {item.fotos.length > 0 && (
-        <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>
-            FOTOS ({item.fotos.length})
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {item.fotos.map((foto, idx) => (
-              <a
-                key={idx}
-                href={foto}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={foto}
-                  alt={`Foto ${idx + 1} do item`}
-                  className="w-full h-full object-cover"
-                />
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* No photos placeholder */}
-      {item.fotos.length === 0 && (
-        <div
-          className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center gap-2"
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-        >
-          <Package className="w-10 h-10" style={{ color: '#E5E7EB' }} />
-          <p className="text-sm" style={{ color: '#9CA3AF' }}>Nenhuma foto disponível</p>
-        </div>
-      )}
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="text-sm font-semibold mb-4" style={{ color: '#6B7280' }}>
+          FOTOS {item.fotos.length > 0 && `(${item.fotos.length})`}
+        </h2>
+        <FotoGaleria fotos={item.fotos} />
+      </div>
     </div>
   )
 }

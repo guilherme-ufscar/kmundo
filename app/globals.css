@@ -8,6 +8,32 @@
   }
 }
 
+/* Termos de Uso — conteúdo HTML do editor WYSIWYG */
+.termos-content h1 { font-size: 1.5rem; font-weight: 700; color: #1A1A2E; margin: 1.25rem 0 0.5rem; }
+.termos-content h2 { font-size: 1.25rem; font-weight: 700; color: #1A1A2E; margin: 1.25rem 0 0.5rem; }
+.termos-content h3 { font-size: 1.05rem; font-weight: 600; color: #1A1A2E; margin: 1rem 0 0.4rem; }
+.termos-content p  { color: #374151; line-height: 1.7; margin-bottom: 0.75rem; }
+.termos-content ul, .termos-content ol { padding-left: 1.5rem; margin-bottom: 0.75rem; color: #374151; }
+.termos-content ul { list-style-type: disc; }
+.termos-content ol { list-style-type: decimal; }
+.termos-content li { margin-bottom: 0.25rem; line-height: 1.6; }
+.termos-content strong { font-weight: 700; color: #1A1A2E; }
+.termos-content em { font-style: italic; }
+.termos-content u  { text-decoration: underline; }
+.termos-content a  { color: #FF6B9D; text-decoration: underline; }
+.termos-content hr { border: none; border-top: 1px solid #E5E7EB; margin: 1.25rem 0; }
+.termos-content img { max-width: 100%; border-radius: 0.5rem; margin: 0.75rem 0; }
+.termos-content blockquote { border-left: 3px solid #FF6B9D; padding-left: 1rem; color: #6B7280; font-style: italic; margin: 0.75rem 0; }
+
+/* Tiptap editor placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9CA3AF;
+  pointer-events: none;
+  height: 0;
+}
+
 @layer base {
   :root {
     /* Suite Manager K-Beauty Design System */

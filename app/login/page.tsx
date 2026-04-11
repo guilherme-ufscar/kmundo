@@ -71,7 +71,7 @@ export default function LoginPage() {
         {/* Center content */}
         <div className="z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6" style={{ background: 'rgba(255,107,157,0.15)', color: '#FF6B9D', border: '1px solid rgba(255,107,157,0.3)' }}>
-            <span>✨</span> Mais de 500 clientes ativas
+            <span>✨</span> Mais de 100 clientes ativas
           </div>
           <h1 className="text-5xl font-bold text-white leading-tight mb-4">
             Sua Suite<br />
@@ -79,15 +79,17 @@ export default function LoginPage() {
               na Coreia
             </span>
           </h1>
+          <p className="text-lg mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Somos uma empresa especializada em redirecionamento de compras e armazenamento. Com a nossa ajuda, você compra diretamente de lojas na Coreia do Sul, mesmo que não enviem para o seu país.
+          </p>
           <p className="text-lg mb-10" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            Receba seus produtos coreanos com facilidade.<br />
-            Sua suite exclusiva, sempre disponível.
+            Recebemos seus pacotes no nosso endereço na Coreia, armazenamos com segurança e redirecionamos para você, em qualquer lugar do mundo.
           </p>
 
           {/* Stats */}
           <div className="flex gap-8">
             <div>
-              <div className="text-3xl font-bold text-white">500+</div>
+              <div className="text-3xl font-bold text-white">100+</div>
               <div className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Clientes ativas</div>
             </div>
             <div>
@@ -108,8 +110,8 @@ export default function LoginPage() {
         <div className="z-10">
           <p style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm">
             Entre em contato:{' '}
-            <a href="mailto:contato@kmundowarehouse.com" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: '#FF6B9D' }}>
-              contato@kmundowarehouse.com
+            <a href="tel:+820107768901" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: '#FF6B9D' }}>
+              +82 010-7768-9011
             </a>
           </p>
         </div>
@@ -209,8 +211,8 @@ export default function LoginPage() {
             <div className="mt-6 pt-6 border-t border-gray-100 text-center">
               <p className="text-sm" style={{ color: '#6B7280' }}>
                 Entre em contato:{' '}
-                <a href="mailto:contato@kmundowarehouse.com" className="font-semibold hover:opacity-80" style={{ color: '#FF6B9D' }}>
-                  contato@kmundowarehouse.com
+                <a href="tel:+820107768901" className="font-semibold hover:opacity-80" style={{ color: '#FF6B9D' }}>
+                  +82 010-7768-9011
                 </a>
               </p>
             </div>

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail } from 'lucide-react'
+import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail, FileText } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,7 @@ const navLinks = [
   { href: '/admin/envios', label: 'Envios', icon: Truck },
   { href: '/admin/convites', label: 'Convites', icon: Link2 },
   { href: '/admin/email', label: 'Email', icon: Mail },
+  { href: '/admin/termos', label: 'Termos', icon: FileText },
   { href: '/admin/configuracoes', label: 'Config', icon: Settings },
 ]
 

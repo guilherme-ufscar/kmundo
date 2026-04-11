@@ -95,13 +95,13 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
             >
               {statusLabel[envio.status]}
             </span>
-            {envio.confirmadoCliente && (
+            {envio.confirmadoCliente && envio.status === 'AGUARDANDO_CONFIRMACAO' && (
               <span
                 className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
                 style={{ background: '#F0FDF4', color: '#16A34A' }}
               >
                 <CheckCircle className="w-3 h-3" />
-                Pagamento confirmado
+                Confirmado
               </span>
             )}
           </div>

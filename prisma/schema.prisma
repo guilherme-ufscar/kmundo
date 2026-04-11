@@ -90,6 +90,7 @@ model Configuracao {
   moedaTaxa         String   @default("USD")
   nomeEmpresa       String   @default("KMundo Warehouse")
   emailContato      String?
+  termosUso         String?  @db.Text
   criadoEm         DateTime @default(now())
   atualizadoEm     DateTime @updatedAt
 
@@ -146,6 +147,7 @@ enum StatusItem {
   RECEBIDO
   EM_ARMAZEM
   EM_ENVIO
+  PREPARANDO_ENVIO
   ENVIADO
   ENTREGUE
 }

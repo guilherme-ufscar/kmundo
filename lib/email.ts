@@ -81,6 +81,7 @@ const statusItemLabel: Record<string, string> = {
   RECEBIDO: 'Recebido',
   EM_ARMAZEM: 'No Armazém',
   EM_ENVIO: 'Em Envio',
+  PREPARANDO_ENVIO: 'Preparando para o envio',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }
@@ -88,6 +89,7 @@ const statusItemCor: Record<string, string> = {
   RECEBIDO: '#3B82F6',
   EM_ARMAZEM: '#FF6B9D',
   EM_ENVIO: '#F59E0B',
+  PREPARANDO_ENVIO: '#F97316',
   ENVIADO: '#8B5CF6',
   ENTREGUE: '#22C55E',
 }

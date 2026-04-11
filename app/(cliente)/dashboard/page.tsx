@@ -10,6 +10,7 @@ const statusLabel: Record<string, string> = {
   RECEBIDO: 'Pagamento Feito',
   EM_ARMAZEM: 'Comprado',
   EM_ENVIO: 'No armazem',
+  PREPARANDO_ENVIO: 'Preparando para o envio',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }
@@ -18,6 +19,7 @@ const statusColors: Record<string, string> = {
   RECEBIDO: '#3B82F6',
   EM_ARMAZEM: '#FF6B9D',
   EM_ENVIO: '#F59E0B',
+  PREPARANDO_ENVIO: '#F97316',
   ENVIADO: '#8B5CF6',
   ENTREGUE: '#22C55E',
 }

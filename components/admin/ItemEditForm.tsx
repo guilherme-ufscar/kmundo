@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Save, Trash2, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { FotoGaleria } from '@/components/FotoGaleria'
 
 interface Props {
   item: {
@@ -14,6 +15,8 @@ interface Props {
     lojaOrigem: string | null
     trackingLoja: string | null
     observacoes: string | null
+    dataEntrada: Date
+    fotos: string[]
   }
 }
 
@@ -23,6 +26,10 @@ export function ItemEditForm({ item }: Props) {
   const [lojaOrigem, setLojaOrigem] = useState(item.lojaOrigem ?? '')
   const [trackingLoja, setTrackingLoja] = useState(item.trackingLoja ?? '')
   const [observacoes, setObservacoes] = useState(item.observacoes ?? '')
+  const [fotos, setFotos] = useState<string[]>(item.fotos)
+  const [dataEntrada, setDataEntrada] = useState(
+    new Date(item.dataEntrada).toISOString().slice(0, 10)
+  )
   const [salvando, setSalvando] = useState(false)
   const [excluindo, setExcluindo] = useState(false)
 
@@ -38,6 +45,8 @@ export function ItemEditForm({ item }: Props) {
           lojaOrigem: lojaOrigem.trim() || null,
           trackingLoja: trackingLoja.trim() || null,
           observacoes: observacoes.trim() || null,
+          dataEntrada: dataEntrada ? new Date(dataEntrada).toISOString() : undefined,
+          fotos,
         }),
       })
       if (res.ok) {
@@ -94,6 +103,16 @@ export function ItemEditForm({ item }: Props) {
           <Input value={trackingLoja} onChange={e => setTrackingLoja(e.target.value)} className="mt-1 h-9 text-sm font-mono" style={{ borderRadius: '8px' }} />
         </div>
         <div>
+          <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>Data de Entrada no Armazém</label>
+          <Input
+            type="date"
+            value={dataEntrada}
+            onChange={e => setDataEntrada(e.target.value)}
+            className="mt-1 h-9 text-sm"
+            style={{ borderRadius: '8px' }}
+          />
+        </div>
+        <div>
           <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>Observações</label>
           <textarea
             value={observacoes}
@@ -103,6 +122,14 @@ export function ItemEditForm({ item }: Props) {
             style={{ borderRadius: '8px' }}
           />
         </div>
+      </div>
+
+      {/* Fotos */}
+      <div className="pt-4 border-t border-gray-100">
+        <p className="text-xs font-medium mb-3" style={{ color: '#9CA3AF' }}>
+          Fotos ({fotos.length}/10)
+        </p>
+        <FotoGaleria fotos={fotos} onFotosChange={setFotos} maxFotos={10} />
       </div>
 
       <div className="flex items-center gap-2 mt-5 pt-4 border-t border-gray-100">

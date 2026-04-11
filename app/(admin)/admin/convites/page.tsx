@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link2, Copy, Check, Plus, Mail, Trash2 } from 'lucide-react'
+import { Link2, Copy, Check, Plus, Mail, Trash2, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -41,8 +41,10 @@ export default function ConvitesPage() {
   const [loadingList, setLoadingList] = useState(true)
   const [linkGerado, setLinkGerado] = useState('')
   const [emailEnviado, setEmailEnviado] = useState('')
+  const [emailErro, setEmailErro] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [reenviando, setReenviando] = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<GerarConviteForm>({
     resolver: zodResolver(gerarConviteSchema),
@@ -68,21 +70,27 @@ export default function ConvitesPage() {
     setSubmitting(true)
     setLinkGerado('')
     setEmailEnviado('')
+    setEmailErro('')
     try {
       const res = await fetch('/api/admin/convites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email ?? '' }),
       })
-      const json = await res.json() as { link?: string; error?: string }
+      const json = await res.json() as { link?: string; error?: string; emailEnviado?: boolean; emailErro?: string }
       if (!res.ok) {
         toast.error(typeof json.error === 'string' ? json.error : 'Erro ao gerar convite')
         return
       }
       setLinkGerado(json.link ?? '')
       if (data.email) {
-        setEmailEnviado(data.email)
-        toast.success(`Convite gerado e email enviado para ${data.email}!`)
+        if (json.emailEnviado) {
+          setEmailEnviado(data.email)
+          toast.success(`Convite gerado e email enviado para ${data.email}!`)
+        } else {
+          setEmailErro(json.emailErro ?? 'Falha ao enviar email')
+          toast.error(`Convite criado, mas o email não foi entregue: ${json.emailErro ?? 'erro desconhecido'}`)
+        }
       } else {
         toast.success('Convite gerado com sucesso!')
       }
@@ -92,6 +100,23 @@ export default function ConvitesPage() {
       toast.error('Erro de conexão. Tente novamente.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function reenviarConvite(id: string, email: string) {
+    setReenviando(id)
+    try {
+      const res = await fetch(`/api/admin/convites/${id}/reenviar`, { method: 'POST' })
+      const json = await res.json() as { ok?: boolean; error?: string }
+      if (res.ok) {
+        toast.success(`Email reenviado para ${email}!`)
+      } else {
+        toast.error(json.error ?? 'Erro ao reenviar email')
+      }
+    } catch {
+      toast.error('Erro de conexão')
+    } finally {
+      setReenviando(null)
     }
   }
 
@@ -166,6 +191,16 @@ export default function ConvitesPage() {
                 </span>
               </div>
             )}
+            {emailErro && (
+              <div className="p-3 rounded-xl flex items-start gap-2" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#EF4444' }} />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: '#DC2626' }}>Email não foi entregue</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#EF4444' }}>{emailErro}</p>
+                  <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>Copie o link abaixo e envie manualmente, ou tente reenviar depois pela lista.</p>
+                </div>
+              </div>
+            )}
             <div className="p-4 rounded-xl flex items-center gap-3" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
               <Link2 className="w-5 h-5 shrink-0" style={{ color: '#22C55E' }} />
               <span className="flex-1 text-sm font-mono break-all" style={{ color: '#166534' }}>{linkGerado}</span>
@@ -230,13 +265,28 @@ export default function ConvitesPage() {
                         {new Date(c.expiresAt).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => void excluirConvite(c.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                          title="Excluir convite"
-                        >
-                          <Trash2 className="w-4 h-4" style={{ color: '#EF4444' }} />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          {c.email && status === 'Disponível' && (
+                            <button
+                              onClick={() => void reenviarConvite(c.id, c.email!)}
+                              disabled={reenviando === c.id}
+                              className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                              title="Reenviar email"
+                            >
+                              <RefreshCw
+                                className={`w-4 h-4 ${reenviando === c.id ? 'animate-spin' : ''}`}
+                                style={{ color: '#3B82F6' }}
+                              />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => void excluirConvite(c.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Excluir convite"
+                          >
+                            <Trash2 className="w-4 h-4" style={{ color: '#EF4444' }} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
