@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,48 +31,17 @@ const cadastroSchema = z.object({
 
 type CadastroForm = z.infer<typeof cadastroSchema>
 
-function CadastroContent() {
+export default function CadastroPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token') ?? ''
-
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [suiteGerada, setSuiteGerada] = useState<number | null>(null)
-
   const [countdown, setCountdown] = useState(5)
-  const [tokenStatus, setTokenStatus] = useState<'validating' | 'valid' | 'invalid'>('validating')
-  const [tokenError, setTokenError] = useState('')
-  const [prefillEmail, setPrefillEmail] = useState('')
-
-  useEffect(() => {
-    if (!token) {
-      setTokenStatus('invalid')
-      setTokenError('Nenhum convite encontrado. Para criar sua conta, entre em contato com a KMundo Warehouse.')
-      return
-    }
-    fetch(`/api/convites/validar?token=${encodeURIComponent(token)}`)
-      .then((r) => r.json())
-      .then((data: { valido: boolean; motivo?: string; email?: string }) => {
-        if (data.valido) {
-          setTokenStatus('valid')
-          if (data.email) setPrefillEmail(data.email)
-        } else {
-          setTokenStatus('invalid')
-          setTokenError(data.motivo ?? 'Convite inválido.')
-        }
-      })
-      .catch(() => {
-        setTokenStatus('invalid')
-        setTokenError('Erro ao validar convite. Tente novamente.')
-      })
-  }, [token])
 
   const { register, handleSubmit, formState: { errors } } = useForm<CadastroForm>({
     resolver: zodResolver(cadastroSchema),
-    defaultValues: { email: prefillEmail },
   })
 
   async function onSubmit(data: CadastroForm) {
@@ -90,7 +59,6 @@ function CadastroContent() {
           pais: data.pais,
           cidade: data.cidade,
           cep: data.cep,
-          token,
         }),
       })
 
@@ -102,7 +70,6 @@ function CadastroContent() {
       }
 
       setSuiteGerada(json.numeroDeSuite)
-      // Redirecionar para login após 5 segundos
       let count = 5
       const interval = setInterval(() => {
         count -= 1
@@ -117,42 +84,6 @@ function CadastroContent() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (tokenStatus === 'validating') {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)' }}>
-        <div className="flex flex-col items-center gap-4 text-white">
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#FF6B9D' }} />
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Validando convite...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (tokenStatus === 'invalid') {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-8" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)' }}>
-        <div className="bg-white rounded-2xl p-10 max-w-md w-full text-center shadow-2xl">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: '#FEF2F2' }}>
-            <XCircle className="w-10 h-10" style={{ color: '#EF4444' }} />
-          </div>
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#1A1A2E' }}>Convite inválido</h2>
-          <p className="mb-8 text-sm" style={{ color: '#6B7280' }}>{tokenError}</p>
-          <p className="text-sm" style={{ color: '#6B7280' }}>
-            Entre em contato:{' '}
-            <a href="mailto:contato@kmundowarehouse.com" className="font-semibold" style={{ color: '#FF6B9D' }}>
-              contato@kmundowarehouse.com
-            </a>
-          </p>
-          <p className="mt-4 text-sm" style={{ color: '#6B7280' }}>
-            <a href="http://kmundowarehouse.com" className="underline hover:opacity-80" style={{ color: '#C77DFF' }}>
-              kmundowarehouse.com
-            </a>
-          </p>
-        </div>
-      </div>
-    )
   }
 
   if (suiteGerada !== null) {
@@ -207,9 +138,6 @@ function CadastroContent() {
         <div className="bg-white rounded-2xl shadow-2xl p-8" style={{ boxShadow: '0 30px 80px rgba(0,0,0,0.3)' }}>
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-4" style={{ background: '#F0FDF4', color: '#22C55E', border: '1px solid #BBF7D0' }}>
-              ✓ Convite válido • Cadastro em 2 minutos
-            </div>
             <h1 className="text-2xl font-bold mb-1" style={{ color: '#1A1A2E' }}>Crie sua conta</h1>
             <p className="text-sm" style={{ color: '#6B7280' }}>Sua suite na Coreia em minutos</p>
           </div>
@@ -237,7 +165,7 @@ function CadastroContent() {
                 <Label className="text-sm font-medium" style={{ color: '#374151' }}>Email</Label>
                 <div className="relative mt-1.5">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
-                  <Input type="email" placeholder="seu@email.com" className="pl-10 h-11" style={{ borderRadius: '8px' }} defaultValue={prefillEmail} {...register('email')} />
+                  <Input type="email" placeholder="seu@email.com" className="pl-10 h-11" style={{ borderRadius: '8px' }} {...register('email')} />
                 </div>
                 {errors.email && <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.email.message}</p>}
               </div>
@@ -312,7 +240,7 @@ function CadastroContent() {
 
             {/* Termos de Uso */}
             <div className="mt-6 pt-5 border-t border-gray-100">
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   className="mt-0.5 w-4 h-4 rounded border-gray-300 cursor-pointer accent-pink-500 flex-shrink-0"
@@ -366,17 +294,5 @@ function CadastroContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function CadastroPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)' }}>
-        <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#FF6B9D' }} />
-      </div>
-    }>
-      <CadastroContent />
-    </Suspense>
   )
 }

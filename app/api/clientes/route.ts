@@ -14,19 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, nomeCompleto, telefone, pais, endereco, cidade, cep, token } = parsed.data
-
-  // Validate invite token
-  const convite = await prisma.conviteCliente.findUnique({ where: { token } })
-  if (!convite) {
-    return NextResponse.json({ error: 'Token de convite inválido' }, { status: 403 })
-  }
-  if (convite.usado) {
-    return NextResponse.json({ error: 'Este convite já foi utilizado' }, { status: 403 })
-  }
-  if (convite.expiresAt < new Date()) {
-    return NextResponse.json({ error: 'Este convite expirou' }, { status: 403 })
-  }
+  const { email, password, nomeCompleto, telefone, pais, endereco, cidade, cep } = parsed.data
 
   const existente = await prisma.usuario.findUnique({ where: { email } })
   if (existente) {
@@ -55,11 +43,6 @@ export async function POST(req: NextRequest) {
       },
     },
     include: { cliente: true },
-  })
-
-  await prisma.conviteCliente.update({
-    where: { token },
-    data: { usado: true },
   })
 
   // Email de boas-vindas com número de suite
