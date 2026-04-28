@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 const ADMIN_EMAIL = 'contato@kmundowarehouse.com'
 const FROM = 'KMundo Warehouse <noreply@kmundowarehouse.com>'
@@ -98,7 +100,7 @@ const statusItemCor: Record<string, string> = {
 
 export async function enviarEmailConvite(email: string, link: string, expiresAt: Date) {
   const expira = expiresAt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: '🎉 Você foi convidado para o KMundo Warehouse',
@@ -120,7 +122,7 @@ export async function enviarEmailBoasVindas(params: {
 }) {
   const { email, nomeCompleto, numeroDeSuite } = params
   const suite = String(numeroDeSuite).padStart(3, '0')
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: `🎊 Sua suite #${suite} está pronta — KMundo Warehouse`,
@@ -142,7 +144,7 @@ export async function enviarEmailBoasVindas(params: {
 
 export async function enviarEmailRecuperacaoSenha(email: string, token: string) {
   const url = `${BASE_URL}/redefinir-senha?token=${token}`
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: 'Recuperação de senha — KMundo Warehouse',
@@ -167,7 +169,7 @@ export async function notificarClienteNovoItem(params: {
   itemId: string
 }) {
   const { emailCliente, nomeCliente, suite, descricao, lojaOrigem, itemId } = params
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: emailCliente,
     subject: '📦 Novo item registrado na sua suite — KMundo Warehouse',
@@ -197,7 +199,7 @@ export async function notificarAdminNovoItem(params: {
   itemId: string
 }) {
   const { nomeCliente, suite, descricao, lojaOrigem, itemId } = params
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: ADMIN_EMAIL,
     subject: `📦 Novo item registrado — Suite #${String(suite).padStart(3, '0')}`,
@@ -229,7 +231,7 @@ export async function notificarClienteStatusItem(params: {
   const { emailCliente, nomeCliente, suite, descricao, novoStatus, itemId } = params
   const label = statusItemLabel[novoStatus] ?? novoStatus
   const cor = statusItemCor[novoStatus] ?? '#6B7280'
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: emailCliente,
     subject: `🔄 Status do item atualizado — ${label}`,
@@ -259,7 +261,7 @@ export async function notificarAdminNovoEnvio(params: {
 }) {
   const { nomeCliente, suite, metodo, itens, envioId } = params
   const metodoLabel: Record<string, string> = { FEDEX: 'FedEx', EMS: 'EMS', ENVIO_EM_GRUPO: 'Envio em Grupo' }
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: ADMIN_EMAIL,
     subject: `🚚 Nova solicitação de envio — Suite #${String(suite).padStart(3, '0')}`,
@@ -294,7 +296,7 @@ export async function notificarClienteEnvioSolicitado(params: {
 }) {
   const { emailCliente, nomeCliente, suite, metodo, itens, envioId } = params
   const metodoLabel: Record<string, string> = { FEDEX: 'FedEx', EMS: 'EMS', ENVIO_EM_GRUPO: 'Envio em Grupo' }
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: emailCliente,
     subject: '🚚 Sua solicitação de envio foi recebida — KMundo Warehouse',
@@ -335,7 +337,7 @@ export async function notificarClienteStatusEnvio(params: {
   const label = statusEnvioLabel[novoStatus] ?? novoStatus
   const cor = statusEnvioCor[novoStatus] ?? '#6B7280'
   const metodoLabel: Record<string, string> = { FEDEX: 'FedEx', EMS: 'EMS', ENVIO_EM_GRUPO: 'Envio em Grupo' }
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: emailCliente,
     subject: `🔄 Seu envio foi atualizado — ${label}`,
@@ -367,7 +369,7 @@ export async function notificarAdminClienteConfirmou(params: {
   envioId: string
 }) {
   const { nomeCliente, suite, envioId } = params
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: ADMIN_EMAIL,
     subject: `✅ Cliente confirmou o envio — Suite #${String(suite).padStart(3, '0')}`,
