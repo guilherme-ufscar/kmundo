@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Camera } from 'lucide-react'
+import { Camera, CheckCircle2 } from 'lucide-react'
 
 const formSchema = z.object({
   status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']),
@@ -25,6 +25,7 @@ const formSchema = z.object({
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().optional(),
   observacoes: z.string().optional(),
+  fretePago: z.boolean().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -54,6 +55,7 @@ interface EnvioData {
   trackingEnvio: string | null
   dataLimitePagamento: string | null
   observacoes: string | null
+  fretePago: boolean
 }
 
 interface Props {
@@ -64,6 +66,7 @@ interface Props {
 export function EnvioAdminForm({ envio, fotos }: Props) {
   const router = useRouter()
   const [salvando, setSalvando] = useState(false)
+  const [fretePago, setFretePago] = useState(envio.fretePago)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -85,6 +88,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
         ? new Date(envio.dataLimitePagamento).toISOString().slice(0, 10)
         : '',
       observacoes: envio.observacoes ?? '',
+      fretePago: envio.fretePago,
     },
   })
 
@@ -112,6 +116,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
         body.dataLimitePagamento = new Date(data.dataLimitePagamento).toISOString()
       }
       if (data.observacoes) body.observacoes = data.observacoes
+      body.fretePago = fretePago
 
       const res = await fetch(`/api/envios/${envio.id}`, {
         method: 'PATCH',
@@ -216,6 +221,24 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
               </select>
             </div>
             <p className="text-xs mt-1.5" style={{ color: '#9CA3AF' }}>Valor cobrado pelo frete (visível para a cliente)</p>
+            <button
+              type="button"
+              onClick={() => setFretePago(v => !v)}
+              className="mt-3 w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all"
+              style={{
+                borderColor: fretePago ? '#22C55E' : '#E5E7EB',
+                background: fretePago ? '#F0FDF4' : '#F9FAFB',
+              }}
+            >
+              <span className="text-sm font-medium" style={{ color: fretePago ? '#16A34A' : '#6B7280' }}>
+                Frete pago
+              </span>
+              {fretePago ? (
+                <CheckCircle2 className="w-5 h-5" style={{ color: '#22C55E' }} />
+              ) : (
+                <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: '#D1D5DB' }} />
+              )}
+            </button>
           </div>
 
           {/* Dimensões e peso */}

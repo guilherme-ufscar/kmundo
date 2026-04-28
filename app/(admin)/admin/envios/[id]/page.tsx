@@ -136,6 +136,7 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
           trackingEnvio: envio.trackingEnvio,
           dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
           observacoes: envio.observacoes,
+          fretePago: (envio as { fretePago?: boolean }).fretePago ?? false,
         }}
         fotos={envio.fotos}
       />

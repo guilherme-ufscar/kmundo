@@ -1,0 +1,1 @@
+ALTER TABLE "envios" ADD COLUMN "fretePago" BOOLEAN NOT NULL DEFAULT false;

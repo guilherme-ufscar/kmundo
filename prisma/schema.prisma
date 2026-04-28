@@ -122,6 +122,7 @@ model Envio {
   dataLimitePagamento DateTime?
   observacoes         String?
   confirmadoCliente   Boolean     @default(false)
+  fretePago           Boolean     @default(false)
   criadoEm           DateTime    @default(now())
   atualizadoEm       DateTime    @updatedAt
 
