@@ -363,6 +363,41 @@ export async function notificarClienteStatusEnvio(params: {
 
 // ─── Envio: cliente confirmou → admin ─────────────────────────────────────────
 
+export async function notificarClienteFretePago(params: {
+  emailCliente: string
+  nomeCliente: string
+  suite: number
+  metodo: string
+  itens: string[]
+  envioId: string
+}) {
+  const { emailCliente, nomeCliente, suite, metodo, itens, envioId } = params
+  const metodoLabel: Record<string, string> = { FEDEX: 'FedEx', EMS: 'EMS', ENVIO_EM_GRUPO: 'Envio em Grupo' }
+  await getResend().emails.send({
+    from: FROM,
+    to: emailCliente,
+    subject: `✅ Pagamento do frete confirmado — Suite #${String(suite).padStart(3, '0')}`,
+    html: layout(`
+      <p style="color:#6B7280;margin:0 0 4px;">Olá, <strong style="color:#1A1A2E;">${nomeCliente}</strong>!</p>
+      <h2 style="color:#1A1A2E;margin:8px 0 8px;">Pagamento do frete confirmado</h2>
+      <p style="color:#6B7280;font-size:14px;margin:0 0 24px;">O pagamento do frete do seu envio foi confirmado e está sendo processado.</p>
+      <div style="background:#F9FAFB;border-radius:12px;padding:20px;margin:0 0 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${infoRow('Suite', `#${String(suite).padStart(3, '0')}`)}
+          ${infoRow('Método', metodoLabel[metodo] ?? metodo)}
+        </table>
+      </div>
+      <p style="color:#6B7280;font-size:13px;margin:0 0 8px;font-weight:600;">Itens no envio:</p>
+      <ul style="margin:0 0 24px;padding-left:20px;color:#1A1A2E;font-size:13px;">
+        ${itens.map(i => `<li style="margin:4px 0;">${i}</li>`).join('')}
+      </ul>
+      ${btnPink(`${BASE_URL}/meus-envios/${envioId}`, 'Ver detalhes do envio')}
+    `),
+  })
+}
+
+// ─── Envio: cliente confirmou → admin ─────────────────────────────────────────
+
 export async function notificarAdminClienteConfirmou(params: {
   nomeCliente: string
   suite: number
