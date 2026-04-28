@@ -28,23 +28,27 @@ export function ItemStatusForm({ itemId, statusAtual }: Props) {
   async function handleSave() {
     if (status === statusAtual) return
     setSaving(true)
-    try {
-      const res = await fetch(`/api/itens/${itemId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      if (res.ok) {
-        toast.success('Status atualizado com sucesso!')
-        router.refresh()
-      } else {
-        toast.error('Erro ao salvar status')
+    let sucesso = false
+    for (let tentativa = 1; tentativa <= 3 && !sucesso; tentativa++) {
+      try {
+        const res = await fetch(`/api/itens/${itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        })
+        if (res.ok) {
+          sucesso = true
+          toast.success('Status atualizado com sucesso!')
+          router.refresh()
+        } else if (tentativa === 3) {
+          toast.error('Erro ao salvar status. Tente novamente.')
+        }
+      } catch {
+        if (tentativa === 3) toast.error('Erro de conexão. Verifique a internet e tente novamente.')
+        else await new Promise(r => setTimeout(r, 800 * tentativa))
       }
-    } catch {
-      toast.error('Erro de conexão')
-    } finally {
-      setSaving(false)
     }
+    setSaving(false)
   }
 
   return (

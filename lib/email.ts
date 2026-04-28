@@ -78,10 +78,10 @@ const statusEnvioCor: Record<string, string> = {
 }
 
 const statusItemLabel: Record<string, string> = {
-  RECEBIDO: 'Recebido',
-  EM_ARMAZEM: 'No Armazém',
-  EM_ENVIO: 'Em Envio',
-  PREPARANDO_ENVIO: 'Preparando para o envio',
+  RECEBIDO: 'Pagamento Feito',
+  EM_ARMAZEM: 'Comprado',
+  EM_ENVIO: 'No Armazém',
+  PREPARANDO_ENVIO: 'Preparando para o Envio',
   ENVIADO: 'Enviado',
   ENTREGUE: 'Entregue',
 }

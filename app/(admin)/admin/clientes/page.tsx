@@ -37,6 +37,7 @@ export default async function AdminClientesPage({
       OR: [
         { nomeCompleto: { contains: busca, mode: 'insensitive' as const } },
         { usuario: { email: { contains: busca, mode: 'insensitive' as const } } },
+        ...(!isNaN(Number(busca)) && busca.trim() !== '' ? [{ numeroDeSuite: Number(busca) }] : []),
       ],
     }),
     ...(status && { status: status as 'PENDENTE' | 'ATIVA' | 'SUSPENSA' }),
@@ -104,8 +105,8 @@ export default async function AdminClientesPage({
                         {new Date(cliente.criadoEm).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-5 py-4">
-                        <Link href={`/admin/clientes/${cliente.id}`} className="text-xs font-medium hover:opacity-80" style={{ color: '#FF6B9D' }}>
-                          Ver →
+                        <Link href={`/admin/clientes/${cliente.id}`} className="text-xs font-medium px-3 py-1 rounded-lg hover:opacity-80" style={{ color: '#FF6B9D', background: '#FFF1F5' }}>
+                          Editar
                         </Link>
                       </td>
                     </tr>

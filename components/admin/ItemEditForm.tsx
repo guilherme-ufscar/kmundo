@@ -36,30 +36,34 @@ export function ItemEditForm({ item }: Props) {
   async function salvar() {
     if (!descricao.trim()) return
     setSalvando(true)
-    try {
-      const res = await fetch(`/api/itens/${item.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          descricao: descricao.trim(),
-          lojaOrigem: lojaOrigem.trim() || null,
-          trackingLoja: trackingLoja.trim() || null,
-          observacoes: observacoes.trim() || null,
-          dataEntrada: dataEntrada ? new Date(dataEntrada).toISOString() : undefined,
-          fotos,
-        }),
-      })
-      if (res.ok) {
-        toast.success('Item atualizado!')
-        router.refresh()
-      } else {
-        toast.error('Erro ao salvar')
+    let sucesso = false
+    for (let tentativa = 1; tentativa <= 3 && !sucesso; tentativa++) {
+      try {
+        const res = await fetch(`/api/itens/${item.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            descricao: descricao.trim(),
+            lojaOrigem: lojaOrigem.trim() || null,
+            trackingLoja: trackingLoja.trim() || null,
+            observacoes: observacoes.trim() || null,
+            dataEntrada: dataEntrada ? new Date(dataEntrada).toISOString() : undefined,
+            fotos,
+          }),
+        })
+        if (res.ok) {
+          sucesso = true
+          toast.success('Item atualizado!')
+          router.refresh()
+        } else if (tentativa === 3) {
+          toast.error('Erro ao salvar. Tente novamente.')
+        }
+      } catch {
+        if (tentativa === 3) toast.error('Erro de conexão. Verifique a internet e tente novamente.')
+        else await new Promise(r => setTimeout(r, 800 * tentativa))
       }
-    } catch {
-      toast.error('Erro de conexão')
-    } finally {
-      setSalvando(false)
     }
+    setSalvando(false)
   }
 
   async function excluir() {

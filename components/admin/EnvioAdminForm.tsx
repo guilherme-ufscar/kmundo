@@ -19,6 +19,8 @@ const formSchema = z.object({
   comprimento: z.string().optional(),
   valorDeclarado: z.string().optional(),
   moeda: z.string().optional(),
+  valorFrete: z.string().optional(),
+  moedaFrete: z.string().optional(),
   videoUrl: z.string().optional(),
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().optional(),
@@ -46,6 +48,8 @@ interface EnvioData {
   comprimento: number | null
   valorDeclarado: number | null
   moeda: string | null
+  valorFrete: number | null
+  moedaFrete: string | null
   videoUrl: string | null
   trackingEnvio: string | null
   dataLimitePagamento: string | null
@@ -73,6 +77,8 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
       comprimento: envio.comprimento?.toString() ?? '',
       valorDeclarado: envio.valorDeclarado?.toString() ?? '',
       moeda: envio.moeda ?? 'BRL',
+      valorFrete: envio.valorFrete?.toString() ?? '',
+      moedaFrete: envio.moedaFrete ?? 'BRL',
       videoUrl: envio.videoUrl ?? '',
       trackingEnvio: envio.trackingEnvio ?? '',
       dataLimitePagamento: envio.dataLimitePagamento
@@ -93,6 +99,12 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
       if (data.valorDeclarado && envio.metodoEnvio !== 'ENVIO_EM_GRUPO') {
         body.valorDeclarado = parseFloat(data.valorDeclarado)
         body.moeda = data.moeda || 'BRL'
+      }
+      if (data.valorFrete) {
+        body.valorFrete = parseFloat(data.valorFrete)
+        body.moedaFrete = data.moedaFrete || 'BRL'
+      } else {
+        body.valorFrete = null
       }
       if (data.videoUrl) body.videoUrl = data.videoUrl
       if (data.trackingEnvio) body.trackingEnvio = data.trackingEnvio
@@ -178,6 +190,32 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Valor do Frete */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Valor do Frete</h2>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Ex: 45.00"
+                className="h-10 flex-1"
+                style={{ borderRadius: '8px' }}
+                {...register('valorFrete')}
+              />
+              <select
+                className="h-10 px-2 rounded-lg border text-sm"
+                style={{ borderRadius: '8px', borderColor: '#E5E7EB', color: '#1A1A2E' }}
+                {...register('moedaFrete')}
+              >
+                <option value="BRL">BRL</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="KRW">KRW</option>
+              </select>
+            </div>
+            <p className="text-xs mt-1.5" style={{ color: '#9CA3AF' }}>Valor cobrado pelo frete (visível para a cliente)</p>
           </div>
 
           {/* Dimensões e peso */}

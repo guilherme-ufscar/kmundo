@@ -159,6 +159,14 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
               </p>
             </div>
           )}
+          {(envio as { valorFrete?: number | null }).valorFrete && (
+            <div>
+              <p className="text-xs" style={{ color: '#9CA3AF' }}>Valor do Frete</p>
+              <p className="text-sm font-bold mt-0.5" style={{ color: '#FF6B9D' }}>
+                {(envio as { valorFrete: number }).valorFrete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} {(envio as { moedaFrete?: string | null }).moedaFrete ?? 'BRL'}
+              </p>
+            </div>
+          )}
           {envio.dataLimitePagamento && (
             <div className="flex items-start gap-2">
               <Calendar className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#EF4444' }} />
