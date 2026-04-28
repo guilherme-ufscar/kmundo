@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { notificarClienteStatusEnvio, notificarAdminClienteConfirmou } from '@/lib/email'
+import { notificarClienteStatusEnvio, notificarAdminClienteConfirmou, notificarClienteFretePago } from '@/lib/email'
 
 const patchAdminSchema = z.object({
   status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']).optional(),
@@ -120,6 +120,18 @@ export async function PATCH(
         cliente: { include: { usuario: { select: { email: true } } } },
       },
     })
+
+    // Notificar cliente se frete foi marcado como pago
+    if (parsed.data.fretePago === true && !envio.fretePago) {
+      notificarClienteFretePago({
+        emailCliente: atualizado.cliente.usuario.email,
+        nomeCliente: atualizado.cliente.nomeCompleto,
+        suite: atualizado.cliente.numeroDeSuite,
+        metodo: atualizado.metodoEnvio,
+        itens: atualizado.itens.map(i => i.item.descricao),
+        envioId: atualizado.id,
+      }).catch(console.error)
+    }
 
     // Notificar cliente se status mudou
     if (parsed.data.status && parsed.data.status !== envio.status) {
