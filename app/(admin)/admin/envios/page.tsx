@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Truck, Package, ChevronRight, CheckCircle } from 'lucide-react'
+import { Truck, Package, ChevronRight, CheckCircle, CheckCircle2 } from 'lucide-react'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
@@ -149,6 +149,12 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
                       <span className="flex items-center gap-1 text-xs" style={{ color: '#16A34A' }}>
                         <CheckCircle className="w-3 h-3" />
                         Cliente confirmou
+                      </span>
+                    )}
+                    {(envio as { fretePago?: boolean }).fretePago && (
+                      <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#16A34A' }}>
+                        <CheckCircle2 className="w-3 h-3" />
+                        Frete pago
                       </span>
                     )}
                     <span className="text-xs" style={{ color: '#D1D5DB' }}>
