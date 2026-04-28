@@ -19,6 +19,7 @@ const patchAdminSchema = z.object({
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().datetime().optional(),
   observacoes: z.string().optional(),
+  fretePago: z.boolean().optional(),
 })
 
 const patchClienteSchema = z.object({
