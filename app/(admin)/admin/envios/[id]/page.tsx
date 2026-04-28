@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Package, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Package, CheckCircle } from 'lucide-react' // Package usado no título do card
 import { EnvioAdminForm } from '@/components/admin/EnvioAdminForm'
 import { DeleteButton } from '@/components/admin/DeleteButton'
+import { ItemEnvioCard } from '@/components/admin/ItemEnvioCard'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
@@ -40,7 +41,7 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
       cliente: { select: { id: true, nomeCompleto: true, numeroDeSuite: true } },
       itens: {
         include: {
-          item: { select: { id: true, descricao: true, lojaOrigem: true, trackingLoja: true, status: true } },
+          item: { select: { id: true, descricao: true, lojaOrigem: true, trackingLoja: true, status: true, fotos: true, observacoes: true, dataEntrada: true } },
         },
       },
     },
@@ -100,20 +101,19 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {envio.itens.map(({ item }) => (
-            <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#F9FAFB' }}>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#FFF1F5' }}>
-                <Package className="w-4 h-4" style={{ color: '#FF6B9D' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{item.descricao}</p>
-                {item.lojaOrigem && (
-                  <p className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem}</p>
-                )}
-              </div>
-              {item.trackingLoja && (
-                <span className="text-xs font-mono flex-shrink-0" style={{ color: '#9CA3AF' }}>{item.trackingLoja}</span>
-              )}
-            </div>
+            <ItemEnvioCard
+              key={item.id}
+              item={{
+                id: item.id,
+                descricao: item.descricao,
+                lojaOrigem: item.lojaOrigem,
+                trackingLoja: item.trackingLoja,
+                status: item.status,
+                fotos: item.fotos,
+                observacoes: item.observacoes,
+                dataEntrada: item.dataEntrada.toISOString(),
+              }}
+            />
           ))}
         </div>
       </div>
