@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+docker/postgres/backup
+*.sql
+npm-debug.log*
+README.md
