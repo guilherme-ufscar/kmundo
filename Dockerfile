@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 FROM base AS deps
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
 # ── Dev stage (sem build, código montado via volume) ──────────────────────────
@@ -17,8 +17,10 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # ── Production stages ─────────────────────────────────────────────────────────
 FROM deps AS builder
-COPY . .
+ENV NODE_ENV=production
+COPY prisma ./prisma
 RUN npx prisma generate
+COPY . .
 RUN npm run build
 
 FROM base AS runner
