@@ -114,6 +114,8 @@ model Envio {
   comprimento         Float?
   valorDeclarado      Float?
   moeda               String?     @default("BRL")
+  valorFrete          Float?
+  moedaFrete          String?     @default("BRL")
   fotos               String[]    @default([])
   videoUrl            String?
   trackingEnvio       String?

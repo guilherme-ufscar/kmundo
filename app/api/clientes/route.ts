@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, nomeCompleto, telefone, pais, endereco, cidade, cep, numero, complemento, bairro, estado } = parsed.data
+  const { email, password, nomeCompleto, telefone, pais, endereco, cidade, cep, complemento, bairro, estado } = parsed.data
 
   const existente = await prisma.usuario.findUnique({ where: { email } })
   if (existente) {
@@ -22,48 +22,60 @@ export async function POST(req: NextRequest) {
   }
 
   const senhaHash = await hash(password, 12)
-  const numeroDeSuite = await gerarProximaSuite()
 
-  const usuario = await prisma.usuario.create({
-    data: {
-      email,
-      senha: senhaHash,
-      role: 'CLIENTE',
-      cliente: {
-        create: {
-          numeroDeSuite,
-          nomeCompleto,
-          telefone,
-          pais,
-          cep,
-          endereco,
-          numero,
-          complemento,
-          bairro,
-          cidade,
-          estado,
-          status: 'ATIVA',
+  // Retry loop to handle race conditions on numeroDeSuite (unique constraint)
+  let usuarioId: string | null = null
+  let clienteNumeroDeSuite: number | null = null
+  for (let tentativa = 1; tentativa <= 5; tentativa++) {
+    const numeroDeSuite = await gerarProximaSuite()
+    try {
+      const criado = await prisma.usuario.create({
+        data: {
+          email,
+          senha: senhaHash,
+          role: 'CLIENTE',
+          cliente: {
+            create: {
+              numeroDeSuite,
+              nomeCompleto,
+              telefone,
+              pais,
+              cep,
+              endereco,
+              complemento,
+              bairro,
+              cidade,
+              estado,
+              status: 'ATIVA',
+            },
+          },
         },
-      },
-    },
-    include: { cliente: true },
-  })
+        include: { cliente: true },
+      })
+      usuarioId = criado.id
+      clienteNumeroDeSuite = criado.cliente?.numeroDeSuite ?? null
+      break
+    } catch (err: unknown) {
+      const e = err as { code?: string }
+      if (e?.code === 'P2002' && tentativa < 5) continue
+      throw err
+    }
+  }
 
-  // Email de boas-vindas com número de suite
-  if (usuario.cliente) {
+  if (!usuarioId) {
+    return NextResponse.json({ error: 'Erro ao gerar número de suite. Tente novamente.' }, { status: 500 })
+  }
+
+  if (clienteNumeroDeSuite) {
     enviarEmailBoasVindas({
       email,
       nomeCompleto,
-      numeroDeSuite: usuario.cliente.numeroDeSuite,
+      numeroDeSuite: clienteNumeroDeSuite,
     }).catch(console.error)
   }
 
   return NextResponse.json(
-    {
-      id: usuario.id,
-      email: usuario.email,
-      numeroDeSuite: usuario.cliente?.numeroDeSuite,
-    },
+    { id: usuarioId, email, numeroDeSuite: clienteNumeroDeSuite },
     { status: 201 }
   )
 }

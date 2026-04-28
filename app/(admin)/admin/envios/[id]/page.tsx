@@ -130,6 +130,8 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
           comprimento: envio.comprimento,
           valorDeclarado: envio.valorDeclarado,
           moeda: envio.moeda,
+          valorFrete: (envio as { valorFrete?: number | null }).valorFrete ?? null,
+          moedaFrete: (envio as { moedaFrete?: string | null }).moedaFrete ?? null,
           videoUrl: envio.videoUrl,
           trackingEnvio: envio.trackingEnvio,
           dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
