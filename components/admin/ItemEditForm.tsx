@@ -18,9 +18,10 @@ interface Props {
     dataEntrada: Date
     fotos: string[]
   }
+  redirectTo?: string
 }
 
-export function ItemEditForm({ item }: Props) {
+export function ItemEditForm({ item, redirectTo = '/admin/itens' }: Props) {
   const router = useRouter()
   const [descricao, setDescricao] = useState(item.descricao)
   const [lojaOrigem, setLojaOrigem] = useState(item.lojaOrigem ?? '')
@@ -73,7 +74,7 @@ export function ItemEditForm({ item }: Props) {
       const res = await fetch(`/api/itens/${item.id}`, { method: 'DELETE' })
       if (res.ok) {
         toast.success('Item excluído')
-        router.push('/admin/itens')
+        router.push(redirectTo)
       } else {
         toast.error('Erro ao excluir')
       }

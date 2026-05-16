@@ -11,6 +11,7 @@ export const clientePerfilSchema = z.object({
   bairro: z.string().optional(),
   cidade: z.string().optional(),
   estado: z.string().optional(),
+  fotoPerfil: z.string().optional().nullable(),
 })
 
 export const clienteStatusSchema = z.enum(['PENDENTE', 'ATIVA', 'SUSPENSA'])
