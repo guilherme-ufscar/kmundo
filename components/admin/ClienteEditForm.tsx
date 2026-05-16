@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Save, Trash2, User, Loader2 } from 'lucide-react'
+import { Save, Trash2, User, Loader2, Camera, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -20,6 +20,7 @@ interface Props {
     bairro: string | null
     cidade: string | null
     estado: string | null
+    fotoPerfil: string | null
     status: string
   }
   email: string
@@ -37,9 +38,12 @@ export function ClienteEditForm({ cliente, email }: Props) {
   const [bairro, setBairro] = useState(cliente.bairro ?? '')
   const [cidade, setCidade] = useState(cliente.cidade ?? '')
   const [estado, setEstado] = useState(cliente.estado ?? '')
+  const [fotoPerfil, setFotoPerfil] = useState(cliente.fotoPerfil ?? '')
   const [salvando, setSalvando] = useState(false)
   const [excluindo, setExcluindo] = useState(false)
   const [buscandoCep, setBuscandoCep] = useState(false)
+  const [uploadingFoto, setUploadingFoto] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const statusClienteLabel: Record<string, string> = { PENDENTE: 'Pendente', ATIVA: 'Ativa', SUSPENSA: 'Suspensa' }
   const statusClienteColor: Record<string, string> = { PENDENTE: '#F59E0B', ATIVA: '#22C55E', SUSPENSA: '#EF4444' }
@@ -86,6 +90,7 @@ export function ClienteEditForm({ cliente, email }: Props) {
           bairro: bairro.trim() || undefined,
           cidade: cidade.trim() || undefined,
           estado: estado.trim() || undefined,
+          fotoPerfil: fotoPerfil || null,
         }),
       })
 
@@ -102,6 +107,37 @@ export function ClienteEditForm({ cliente, email }: Props) {
     } finally {
       setSalvando(false)
     }
+  }
+
+  async function handleUploadFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingFoto(true)
+    try {
+      const formData = new FormData()
+      formData.append('foto', file)
+      const res = await fetch(`/api/clientes/${cliente.id}/foto`, {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json() as { fotoPerfil?: string; error?: string }
+      if (!res.ok) {
+        toast.error(json.error ?? 'Erro ao enviar foto.')
+        return
+      }
+      setFotoPerfil(json.fotoPerfil ?? '')
+      toast.success('Foto enviada com sucesso!')
+    } catch {
+      toast.error('Erro de conexão ao enviar foto.')
+    } finally {
+      setUploadingFoto(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  function removerFoto() {
+    setFotoPerfil('')
   }
 
   async function excluir() {
@@ -132,6 +168,33 @@ export function ClienteEditForm({ cliente, email }: Props) {
         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusClienteColor[cliente.status] }}>
           {statusClienteLabel[cliente.status]}
         </span>
+      </div>
+
+      <div className="mb-5 pb-5 border-b border-gray-100">
+        <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#9CA3AF' }}>Foto de perfil</p>
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center" style={{ background: '#FFF1F5' }}>
+            {fotoPerfil ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={fotoPerfil} alt={nomeCompleto} className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-8 h-8" style={{ color: '#FF6B9D' }} />
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer" style={{ background: '#FFF1F5', color: '#FF6B9D' }}>
+              <Camera className="w-4 h-4" />
+              {uploadingFoto ? 'Enviando...' : fotoPerfil ? 'Trocar foto' : 'Adicionar foto'}
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUploadFoto} disabled={uploadingFoto} />
+            </label>
+            {fotoPerfil && (
+              <button type="button" onClick={removerFoto} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium" style={{ background: '#FEF2F2', color: '#EF4444' }}>
+                <X className="w-4 h-4" />
+                Remover foto
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

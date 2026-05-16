@@ -38,8 +38,13 @@ export default async function PerfilPage() {
           telefone: cliente.telefone,
           pais: cliente.pais,
           endereco: cliente.endereco ?? '',
+          numero: cliente.numero ?? '',
+          complemento: cliente.complemento ?? '',
+          bairro: cliente.bairro ?? '',
           cidade: cliente.cidade ?? '',
+          estado: cliente.estado ?? '',
           cep: cliente.cep ?? '',
+          fotoPerfil: cliente.fotoPerfil ?? null,
         }}
       />
     </div>
