@@ -91,17 +91,25 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status')
   const pagina = parseInt(searchParams.get('pagina') ?? '1')
   const limite = parseInt(searchParams.get('limite') ?? '20')
+  const suiteExata = searchParams.get('suiteExata')
 
-  const where = {
-    ...(busca && {
-      OR: [
-        { nomeCompleto: { contains: busca, mode: 'insensitive' as const } },
-        { usuario: { email: { contains: busca, mode: 'insensitive' as const } } },
-        ...(!isNaN(Number(busca)) && busca.trim() !== '' ? [{ numeroDeSuite: Number(busca) }] : []),
-      ],
-    }),
-    ...(status && { status: status as 'PENDENTE' | 'ATIVA' | 'SUSPENSA' }),
-  }
+  const suiteNumero = suiteExata && !isNaN(Number(suiteExata)) ? Number(suiteExata) : null
+
+  const where = suiteNumero !== null
+    ? {
+        numeroDeSuite: suiteNumero,
+        ...(status && { status: status as 'PENDENTE' | 'ATIVA' | 'SUSPENSA' }),
+      }
+    : {
+        ...(busca && {
+          OR: [
+            { nomeCompleto: { contains: busca, mode: 'insensitive' as const } },
+            { usuario: { email: { contains: busca, mode: 'insensitive' as const } } },
+            ...(!isNaN(Number(busca)) && busca.trim() !== '' ? [{ numeroDeSuite: Number(busca) }] : []),
+          ],
+        }),
+        ...(status && { status: status as 'PENDENTE' | 'ATIVA' | 'SUSPENSA' }),
+      }
 
   const [clientes, total] = await Promise.all([
     prisma.cliente.findMany({

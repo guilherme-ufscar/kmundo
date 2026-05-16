@@ -57,7 +57,12 @@ function NovoItemForm() {
     setClienteEncontrado(null)
     setError('')
     try {
-      const res = await fetch(`/api/clientes?busca=${encodeURIComponent(suiteNumero)}&limite=1`)
+      const termo = suiteNumero.trim()
+      const suiteNumerica = termo.replace(/^#/, '')
+      const query = /^\d+$/.test(suiteNumerica)
+        ? `/api/clientes?suiteExata=${encodeURIComponent(suiteNumerica)}&limite=1`
+        : `/api/clientes?busca=${encodeURIComponent(termo)}&limite=1`
+      const res = await fetch(query)
       const data = await res.json()
       if (data.clientes?.length > 0) {
         const c = data.clientes[0]

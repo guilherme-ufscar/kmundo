@@ -41,6 +41,7 @@ model Cliente {
   atualizadoEm DateTime      @updatedAt
   itens         Item[]
   envios        Envio[]
+  pedidosCompra PedidoCompra[]
 
   @@map("clientes")
 }
@@ -88,15 +89,19 @@ model ConviteCliente {
 }
 
 model Configuracao {
-  id                String   @id @default(cuid())
-  diasGratuitos     Int      @default(30)
-  taxaDiariaArmazem Float    @default(0)
-  moedaTaxa         String   @default("USD")
-  nomeEmpresa       String   @default("KMundo Warehouse")
-  emailContato      String?
-  termosUso         String?  @db.Text
-  criadoEm         DateTime @default(now())
-  atualizadoEm     DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  diasGratuitos        Int      @default(30)
+  taxaDiariaArmazem    Float    @default(0)
+  moedaTaxa            String   @default("USD")
+  nomeEmpresa          String   @default("KMundo Warehouse")
+  emailContato         String?
+  whatsappRecepcao     String?
+  chavePix             String?
+  qrCodePix            String?
+  instrucoesPix        String?  @db.Text
+  termosUso            String?  @db.Text
+  criadoEm             DateTime @default(now())
+  atualizadoEm         DateTime @updatedAt
 
   @@map("configuracoes")
 }
@@ -123,10 +128,81 @@ model Envio {
   observacoes         String?
   confirmadoCliente   Boolean     @default(false)
   fretePago           Boolean     @default(false)
-  criadoEm           DateTime    @default(now())
-  atualizadoEm       DateTime    @updatedAt
+  criadoEm            DateTime    @default(now())
+  atualizadoEm        DateTime    @updatedAt
 
   @@map("envios")
+}
+
+model PedidoCompra {
+  id                     String               @id @default(cuid())
+  clienteId              String
+  cliente                Cliente              @relation(fields: [clienteId], references: [id])
+  itens                  PedidoCompraItem[]
+  status                 StatusPedidoCompra   @default(AGUARDANDO_REVISAO)
+  valorTotal             Float?
+  moeda                  String               @default("BRL")
+  chavePix               String?
+  qrCodePix              String?
+  instrucoesPix          String?
+  linkCartao             String?
+  whatsappRecepcao       String?
+  observacoesCliente     String?              @db.Text
+  observacoesAdmin       String?              @db.Text
+  dataLimitePagamento    DateTime?
+  formaPagamentoCliente  FormaPagamentoPedido?
+  pagoEm                 DateTime?
+  criadoEm               DateTime             @default(now())
+  atualizadoEm           DateTime             @updatedAt
+
+  @@map("pedidos_compra")
+}
+
+model PedidoCompraItem {
+  id             String       @id @default(cuid())
+  pedidoCompraId String
+  pedidoCompra   PedidoCompra @relation(fields: [pedidoCompraId], references: [id], onDelete: Cascade)
+  nomeProduto    String
+  urlProduto     String?
+  quantidade     Int          @default(1)
+  variacao       String?
+  observacoes    String?      @db.Text
+
+  @@map("pedidos_compra_itens")
+}
+
+model Funcionario {
+  id             String                 @id @default(cuid())
+  nomeCompleto   String
+  email          String?
+  telefone       String?
+  cargo          String?
+  dataAdmissao   DateTime?
+  salarioBase    Float?
+  status         StatusFuncionario      @default(ATIVO)
+  observacoes    String?                @db.Text
+  lancamentos    LancamentoFuncionario[]
+  criadoEm       DateTime               @default(now())
+  atualizadoEm   DateTime               @updatedAt
+
+  @@map("funcionarios")
+}
+
+model LancamentoFuncionario {
+  id               String                    @id @default(cuid())
+  funcionarioId    String
+  funcionario      Funcionario               @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  tipo             TipoLancamentoFuncionario
+  dataReferencia   DateTime
+  valor            Float?
+  horas            Float?
+  quantidadeDias   Int?
+  arquivoAtestado  String?
+  descricao        String?                   @db.Text
+  criadoEm         DateTime                  @default(now())
+  atualizadoEm     DateTime                  @updatedAt
+
+  @@map("lancamentos_funcionario")
 }
 
 model ItemEnvio {
@@ -172,4 +248,30 @@ enum StatusEnvio {
   PAGO
   ENVIADO
   ENTREGUE
+}
+
+enum StatusPedidoCompra {
+  AGUARDANDO_REVISAO
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  COMPRADO
+  CANCELADO
+}
+
+enum FormaPagamentoPedido {
+  PIX
+  CARTAO_WHATSAPP
+}
+
+enum StatusFuncionario {
+  ATIVO
+  INATIVO
+}
+
+enum TipoLancamentoFuncionario {
+  PAGAMENTO
+  HORA_EXTRA
+  ATESTADO
+  DESCONTO
+  OBSERVACAO
 }

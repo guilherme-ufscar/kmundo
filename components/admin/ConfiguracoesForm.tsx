@@ -15,6 +15,10 @@ interface Configuracao {
   moedaTaxa: string
   nomeEmpresa: string
   emailContato: string | null
+  whatsappRecepcao: string | null
+  chavePix: string | null
+  qrCodePix: string | null
+  instrucoesPix: string | null
 }
 
 interface Props {
@@ -27,12 +31,16 @@ export function ConfiguracoesForm({ config }: Props) {
   const [form, setForm] = useState({
     nomeEmpresa: config.nomeEmpresa,
     emailContato: config.emailContato ?? '',
+    whatsappRecepcao: config.whatsappRecepcao ?? '',
+    chavePix: config.chavePix ?? '',
+    qrCodePix: config.qrCodePix ?? '',
+    instrucoesPix: config.instrucoesPix ?? '',
     diasGratuitos: String(config.diasGratuitos),
     taxaDiariaArmazem: String(config.taxaDiariaArmazem),
     moedaTaxa: config.moedaTaxa,
   })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
@@ -46,6 +54,10 @@ export function ConfiguracoesForm({ config }: Props) {
         body: JSON.stringify({
           nomeEmpresa: form.nomeEmpresa,
           emailContato: form.emailContato || null,
+          whatsappRecepcao: form.whatsappRecepcao || null,
+          chavePix: form.chavePix || null,
+          qrCodePix: form.qrCodePix || null,
+          instrucoesPix: form.instrucoesPix || null,
           diasGratuitos: parseInt(form.diasGratuitos),
           taxaDiariaArmazem: parseFloat(form.taxaDiariaArmazem),
           moedaTaxa: form.moedaTaxa,
@@ -92,6 +104,58 @@ export function ConfiguracoesForm({ config }: Props) {
               onChange={handleChange}
               placeholder="contato@suitemanager.com"
               className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Pagamentos e Contato</h2>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>WhatsApp da recepção</Label>
+            <Input
+              name="whatsappRecepcao"
+              value={form.whatsappRecepcao}
+              onChange={handleChange}
+              placeholder="5511999999999"
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+            <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>Número usado no botão de pagamento em cartão via WhatsApp</p>
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Chave Pix fixa</Label>
+            <Input
+              name="chavePix"
+              value={form.chavePix}
+              onChange={handleChange}
+              placeholder="email, telefone, CPF/CNPJ ou chave aleatória"
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Imagem/URL do QR Code Pix</Label>
+            <Input
+              name="qrCodePix"
+              value={form.qrCodePix}
+              onChange={handleChange}
+              placeholder="https://... ou /uploads/..."
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Instruções do Pix</Label>
+            <textarea
+              name="instrucoesPix"
+              value={form.instrucoesPix}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Texto complementar exibido para o cliente"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1.5 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{ borderRadius: '8px' }}
             />
           </div>

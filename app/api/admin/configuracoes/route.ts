@@ -9,6 +9,10 @@ const configSchema = z.object({
   moedaTaxa: z.string().min(1).optional(),
   nomeEmpresa: z.string().min(1).optional(),
   emailContato: z.string().email().optional().nullable(),
+  whatsappRecepcao: z.string().optional().nullable(),
+  chavePix: z.string().optional().nullable(),
+  qrCodePix: z.string().optional().nullable(),
+  instrucoesPix: z.string().optional().nullable(),
 })
 
 export async function GET() {
