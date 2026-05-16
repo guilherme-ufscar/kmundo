@@ -9,17 +9,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { clientePerfilSchema } from '@/lib/validations/cliente'
 
-const perfilSchema = z.object({
-  nomeCompleto: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
-  telefone: z.string().min(8, 'Telefone deve ter ao menos 8 caracteres'),
-  pais: z.string().min(2, 'País deve ter ao menos 2 caracteres'),
-  endereco: z.string().optional(),
-  cidade: z.string().optional(),
-  cep: z.string().optional(),
-})
-
-type PerfilForm = z.infer<typeof perfilSchema>
+type PerfilForm = z.infer<typeof clientePerfilSchema>
 
 interface PerfilFormProps {
   clienteId: string
@@ -34,7 +26,7 @@ export function PerfilForm({ clienteId, defaultValues }: PerfilFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<PerfilForm>({
-    resolver: zodResolver(perfilSchema),
+    resolver: zodResolver(clientePerfilSchema),
     defaultValues,
   })
 
@@ -47,8 +39,8 @@ export function PerfilForm({ clienteId, defaultValues }: PerfilFormProps) {
         body: JSON.stringify(data),
       })
       if (!res.ok) {
-        const json = await res.json() as { error?: string }
-        toast.error(json.error ?? 'Erro ao salvar')
+        const json = await res.json() as { error?: string; message?: string }
+        toast.error(json.message ?? json.error ?? 'Erro ao salvar')
         return
       }
       toast.success('Perfil atualizado com sucesso!')

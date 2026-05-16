@@ -65,40 +65,43 @@ export function ClienteEditForm({ cliente, email }: Props) {
   }
 
   async function salvar() {
-    if (!nomeCompleto.trim() || !telefone.trim() || !pais.trim()) return
-    setSalvando(true)
-    let sucesso = false
-    for (let tentativa = 1; tentativa <= 3 && !sucesso; tentativa++) {
-      try {
-        const res = await fetch(`/api/clientes/${cliente.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nomeCompleto: nomeCompleto.trim(),
-            telefone: telefone.trim(),
-            pais: pais.trim(),
-            cep: cep.trim() || undefined,
-            endereco: endereco.trim() || undefined,
-            numero: numero.trim() || undefined,
-            complemento: complemento.trim() || undefined,
-            bairro: bairro.trim() || undefined,
-            cidade: cidade.trim() || undefined,
-            estado: estado.trim() || undefined,
-          }),
-        })
-        if (res.ok) {
-          sucesso = true
-          toast.success('Cliente atualizado!')
-          router.refresh()
-        } else if (tentativa === 3) {
-          toast.error('Erro ao salvar. Tente novamente.')
-        }
-      } catch {
-        if (tentativa === 3) toast.error('Erro de conexão. Verifique a internet e tente novamente.')
-        else await new Promise(r => setTimeout(r, 800 * tentativa))
-      }
+    if (!nomeCompleto.trim() || !telefone.trim() || !pais.trim()) {
+      toast.error('Preencha nome completo, telefone e país antes de salvar.')
+      return
     }
-    setSalvando(false)
+
+    setSalvando(true)
+    try {
+      const res = await fetch(`/api/clientes/${cliente.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nomeCompleto: nomeCompleto.trim(),
+          telefone: telefone.trim(),
+          pais: pais.trim(),
+          cep: cep.trim() || undefined,
+          endereco: endereco.trim() || undefined,
+          numero: numero.trim() || undefined,
+          complemento: complemento.trim() || undefined,
+          bairro: bairro.trim() || undefined,
+          cidade: cidade.trim() || undefined,
+          estado: estado.trim() || undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const json = await res.json() as { error?: string; message?: string }
+        toast.error(json.message ?? json.error ?? 'Erro ao salvar cliente.')
+        return
+      }
+
+      toast.success('Cliente atualizado!')
+      router.refresh()
+    } catch {
+      toast.error('Erro de conexão. Verifique a internet e tente novamente.')
+    } finally {
+      setSalvando(false)
+    }
   }
 
   async function excluir() {

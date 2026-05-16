@@ -1,21 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-
-const perfilSchema = z.object({
-  nomeCompleto: z.string().min(2).optional(),
-  telefone: z.string().min(8).optional(),
-  pais: z.string().min(2).optional(),
-  cep: z.string().optional(),
-  endereco: z.string().optional(),
-  numero: z.string().optional(),
-  complemento: z.string().optional(),
-  bairro: z.string().optional(),
-  cidade: z.string().optional(),
-  estado: z.string().optional(),
-  status: z.enum(['PENDENTE', 'ATIVA', 'SUSPENSA']).optional(),
-})
+import { clientePatchSchema } from '@/lib/validations/cliente'
 
 export async function GET(
   _req: NextRequest,
@@ -92,10 +78,16 @@ export async function PATCH(
   }
 
   const body = await req.json()
-  const parsed = perfilSchema.safeParse(body)
+  const parsed = clientePatchSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      {
+        error: parsed.error.flatten(),
+        message: 'Dados inválidos para salvar cliente',
+      },
+      { status: 400 }
+    )
   }
 
   const atualizado = await prisma.cliente.update({

@@ -17,6 +17,8 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
   const isClientePage =
     nextUrl.pathname.startsWith('/dashboard') ||
     nextUrl.pathname.startsWith('/meus-itens') ||
+    nextUrl.pathname.startsWith('/meus-envios') ||
+    nextUrl.pathname.startsWith('/meus-pedidos') ||
     nextUrl.pathname.startsWith('/perfil')
 
   if (isAuthPage && isLoggedIn) {
