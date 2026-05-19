@@ -43,6 +43,7 @@ model Cliente {
   envios        Envio[]
   pedidosCompra PedidoCompra[]
 
+  @@index([status])
   @@map("clientes")
 }
 
@@ -63,6 +64,10 @@ model Item {
   atualizadoEm DateTime   @updatedAt
   envios       ItemEnvio[]
 
+  @@index([clienteId, status])
+  @@index([clienteId, dataEntrada(sort: Desc)])
+  @@index([status, dataEntrada])
+  @@index([criadoEm])
   @@map("itens")
 }
 
@@ -131,6 +136,8 @@ model Envio {
   criadoEm            DateTime    @default(now())
   atualizadoEm        DateTime    @updatedAt
 
+  @@index([clienteId, criadoEm(sort: Desc)])
+  @@index([clienteId, status])
   @@map("envios")
 }
 
@@ -155,6 +162,8 @@ model PedidoCompra {
   criadoEm               DateTime             @default(now())
   atualizadoEm           DateTime             @updatedAt
 
+  @@index([clienteId, criadoEm(sort: Desc)])
+  @@index([clienteId, status])
   @@map("pedidos_compra")
 }
 
@@ -212,6 +221,8 @@ model ItemEnvio {
   itemId  String
   item    Item   @relation(fields: [itemId], references: [id])
 
+  @@index([envioId])
+  @@index([itemId])
   @@map("itens_envio")
 }
 
