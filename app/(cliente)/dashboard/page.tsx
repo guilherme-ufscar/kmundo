@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getClienteDashboard } from '@/lib/cache'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { Package, Clock, Truck } from 'lucide-react'
 import { SuiteCard } from '@/components/cliente/SuiteCard'
@@ -26,21 +26,11 @@ const statusColors: Record<string, string> = {
 
 export default async function DashboardPage() {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
-    include: {
-      itens: {
-        orderBy: { dataEntrada: 'desc' },
-        take: 5,
-      },
-    },
-  })
+  const data = await getClienteDashboard(session!.user!.id)
 
-  if (!cliente) return null
+  if (!data) return null
 
-  const emArmazem = await prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } })
-  const emEnvio = await prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['EM_ENVIO', 'ENVIADO'] } } })
-  const entregues = await prisma.item.count({ where: { clienteId: cliente.id, status: 'ENTREGUE' } })
+  const { cliente, emArmazem, emEnvio, entregues } = data
 
   const primeiroNome = cliente.nomeCompleto.split(' ')[0]
 

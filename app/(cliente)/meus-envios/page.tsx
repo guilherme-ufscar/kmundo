@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getClienteEnvios } from '@/lib/cache'
 import Link from 'next/link'
 import { Package, Truck, Plus, ChevronRight } from 'lucide-react'
 
@@ -29,19 +29,11 @@ const metodoLabel: Record<string, string> = {
 
 export default async function MeusEnviosPage() {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
-  })
+  const data = await getClienteEnvios(session!.user!.id)
 
-  if (!cliente) return null
+  if (!data) return null
 
-  const envios = await prisma.envio.findMany({
-    where: { clienteId: cliente.id },
-    include: {
-      itens: { include: { item: { select: { descricao: true } } } },
-    },
-    orderBy: { criadoEm: 'desc' },
-  })
+  const { envios } = data
 
   return (
     <div className="p-8">

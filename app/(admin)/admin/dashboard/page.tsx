@@ -1,31 +1,9 @@
-import { prisma } from '@/lib/prisma'
+import { getAdminDashboard } from '@/lib/cache'
 import { Users, Package, AlertTriangle, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function AdminDashboardPage() {
-  const [
-    totalClientes,
-    clientesAtivas,
-    totalItens,
-    itensEmArmazem,
-    itensCriticos,
-    novosHoje,
-  ] = await Promise.all([
-    prisma.cliente.count(),
-    prisma.cliente.count({ where: { status: 'ATIVA' } }),
-    prisma.item.count(),
-    prisma.item.count({ where: { status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } }),
-    prisma.item.count({
-      where: {
-        status: { in: ['RECEBIDO', 'EM_ARMAZEM'] },
-        dataEntrada: { lte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
-      },
-    }),
-    prisma.item.count({
-      where: {
-        criadoEm: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-      },
-    }).catch(() => 0),
-  ])
+  const { totalClientes, clientesAtivas, totalItens, itensEmArmazem, itensCriticos, novosHoje, itensRecentes } = await getAdminDashboard()
 
   const metricas = [
     { label: 'Clientes Ativas', valor: clientesAtivas, total: totalClientes, icon: Users, cor: '#FF6B9D', bg: '#FFF1F5' },
@@ -33,12 +11,6 @@ export default async function AdminDashboardPage() {
     { label: 'Armazenagem Crítica', valor: itensCriticos, total: null, icon: AlertTriangle, cor: '#EF4444', bg: '#FEF2F2' },
     { label: 'Novos Hoje', valor: novosHoje, total: null, icon: TrendingUp, cor: '#22C55E', bg: '#F0FDF4' },
   ]
-
-  const itensRecentes = await prisma.item.findMany({
-    orderBy: { dataEntrada: 'desc' },
-    take: 10,
-    include: { cliente: { select: { numeroDeSuite: true, nomeCompleto: true } } },
-  })
 
   const statusLabel: Record<string, string> = {
     RECEBIDO: 'Pagamento Feito',
@@ -87,9 +59,9 @@ export default async function AdminDashboardPage() {
       <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="font-semibold" style={{ color: '#1A1A2E' }}>Itens Recentes</h2>
-          <a href="/admin/itens" className="text-sm font-medium hover:opacity-80" style={{ color: '#FF6B9D' }}>
+          <Link href="/admin/itens" className="text-sm font-medium hover:opacity-80" style={{ color: '#FF6B9D' }}>
             Ver todos →
-          </a>
+          </Link>
         </div>
 
         <div className="overflow-x-auto">
