@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getClienteItens } from '@/lib/cache'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { Package, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -25,16 +25,11 @@ const statusColors: Record<string, string> = {
 
 export default async function MeusItensPage() {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
-  })
+  const data = await getClienteItens(session!.user!.id)
 
-  if (!cliente) return null
+  if (!data) return null
 
-  const itens = await prisma.item.findMany({
-    where: { clienteId: cliente.id },
-    orderBy: { dataEntrada: 'desc' },
-  })
+  const { itens } = data
 
   return (
     <div className="p-4 sm:p-8">
