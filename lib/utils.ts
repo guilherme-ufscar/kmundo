@@ -5,9 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function calcularDiasArmazenado(dataEntrada: Date): number {
+export function calcularDiasArmazenado(dataEntrada: Date | string): number {
   const agora = new Date()
-  const diff = agora.getTime() - dataEntrada.getTime()
+  const diff = agora.getTime() - new Date(dataEntrada).getTime()
   return Math.floor(diff / (1000 * 60 * 60 * 24))
 }
 
