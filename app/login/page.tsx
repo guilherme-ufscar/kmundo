@@ -75,7 +75,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-5xl font-bold text-white leading-tight mb-4">
             Sua Suite<br />
-            <span style={{ background: 'linear-gradient(135deg, #FF6B9D, #C77DFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span className="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
               na Coreia
             </span>
           </h1>

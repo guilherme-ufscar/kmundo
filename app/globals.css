@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cross-browser gradient text support */
+.text-gradient {
+  background: linear-gradient(135deg, #FF6B9D, #C77DFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+}
+
+/* Fallback para navegadores antigos */
+@supports not (-webkit-background-clip: text) {
+  .text-gradient {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #FF6B9D;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -67,10 +85,11 @@
   }
 
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
