@@ -129,7 +129,7 @@ export default function CadastroPage() {
 
           <div className="rounded-2xl p-6 mb-8" style={{ background: 'linear-gradient(135deg, #FF6B9D15, #C77DFF15)', border: '2px solid #FF6B9D30' }}>
             <p className="text-sm font-medium mb-2" style={{ color: '#9CA3AF' }}>Seu número de suite</p>
-            <p className="text-5xl font-bold" style={{ background: 'linear-gradient(135deg, #FF6B9D, #C77DFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <p className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
               #{String(suiteGerada).padStart(3, '0')}
             </p>
             <p className="text-xs mt-3" style={{ color: '#9CA3AF' }}>Guarde esse número — é seu identificador único</p>
