@@ -12,7 +12,7 @@ const patchAdminSchema = z.object({
   comprimento: z.number().positive().optional(),
   valorDeclarado: z.number().positive().optional(),
   moeda: z.string().optional(),
-  valorFrete: z.number().positive().optional(),
+  valorFrete: z.number().min(0).optional(),
   moedaFrete: z.string().optional(),
   fotos: z.array(z.string()).optional(),
   videoUrl: z.string().optional(),
