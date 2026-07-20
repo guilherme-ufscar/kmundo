@@ -18,7 +18,7 @@ export default async function ConfiguracoesPage() {
         <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Configurações</h1>
         <p style={{ color: '#6B7280' }}>Configure as regras do sistema</p>
       </div>
-      <ConfiguracoesForm config={config} />
+      <ConfiguracoesForm config={config} blingConectado={Boolean(config.blingConectadoEm)} />
     </div>
   )
 }

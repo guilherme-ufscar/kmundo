@@ -1,0 +1,5 @@
+ALTER TABLE "configuracoes"
+  ADD COLUMN IF NOT EXISTS "blingAccessToken" TEXT,
+  ADD COLUMN IF NOT EXISTS "blingRefreshToken" TEXT,
+  ADD COLUMN IF NOT EXISTS "blingExpiraEm" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "blingConectadoEm" TIMESTAMP(3);

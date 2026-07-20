@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Settings, Save } from 'lucide-react'
+import { Settings, Save, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,9 +23,10 @@ interface Configuracao {
 
 interface Props {
   config: Configuracao
+  blingConectado: boolean
 }
 
-export function ConfiguracoesForm({ config }: Props) {
+export function ConfiguracoesForm({ config, blingConectado }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -108,6 +109,18 @@ export function ConfiguracoesForm({ config }: Props) {
             />
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-2 flex items-center gap-2" style={{ color: '#1A1A2E' }}>
+          <Link2 className="w-4 h-4" style={{ color: '#FF6B9D' }} />
+          Integração Bling
+        </h2>
+        <p className="text-sm mb-4" style={{ color: '#6B7280' }}>{blingConectado ? 'Conta Bling conectada.' : 'Conecte a conta Bling para emitir notas fiscais.'}</p>
+        <a href="/api/bling/conectar" className="inline-flex items-center gap-2 px-4 h-10 rounded-lg text-sm font-semibold text-white" style={{ background: '#1A1A2E' }}>
+          <Link2 className="w-4 h-4" />
+          {blingConectado ? 'Reconectar Bling' : 'Conectar Bling'}
+        </a>
       </div>
 
       <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>

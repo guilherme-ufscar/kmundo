@@ -99,19 +99,23 @@ model ConviteCliente {
 }
 
 model Configuracao {
-  id                String   @id @default(cuid())
-  diasGratuitos     Int      @default(30)
-  taxaDiariaArmazem Float    @default(0)
-  moedaTaxa         String   @default("USD")
-  nomeEmpresa       String   @default("KMundo Warehouse")
+  id                String    @id @default(cuid())
+  diasGratuitos     Int       @default(30)
+  taxaDiariaArmazem Float     @default(0)
+  moedaTaxa         String    @default("USD")
+  nomeEmpresa       String    @default("KMundo Warehouse")
   emailContato      String?
   whatsappRecepcao  String?
   chavePix          String?
   qrCodePix         String?
-  instrucoesPix     String?  @db.Text
-  termosUso         String?  @db.Text
-  criadoEm          DateTime @default(now())
-  atualizadoEm      DateTime @updatedAt
+  instrucoesPix     String?   @db.Text
+  termosUso         String?   @db.Text
+  blingAccessToken  String?   @db.Text
+  blingRefreshToken String?   @db.Text
+  blingExpiraEm     DateTime?
+  blingConectadoEm  DateTime?
+  criadoEm          DateTime  @default(now())
+  atualizadoEm      DateTime  @updatedAt
 
   @@map("configuracoes")
 }
