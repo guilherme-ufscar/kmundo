@@ -16,6 +16,7 @@ const patchAdminSchema = z.object({
   moedaFrete: z.string().optional(),
   fotos: z.array(z.string()).optional(),
   videoUrl: z.string().optional(),
+  declaracaoConteudo: z.string().min(3).optional(),
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().datetime().optional(),
   observacoes: z.string().optional(),
@@ -121,6 +122,10 @@ export async function PATCH(
       },
     })
 
+    if (parsed.data.status && parsed.data.status !== envio.status) {
+      await prisma.eventoEnvio.create({ data: { envioId: envio.id, titulo: 'Status atualizado', descricao: `Status alterado para ${parsed.data.status}` } })
+    }
+
     // Notificar cliente se frete foi marcado como pago
     if (parsed.data.fretePago === true && !envio.fretePago) {
       notificarClienteFretePago({
@@ -168,6 +173,8 @@ export async function PATCH(
     where: { id: params.id },
     data: { confirmadoCliente: true },
   })
+
+  await prisma.eventoEnvio.create({ data: { envioId: envio.id, titulo: 'Cliente confirmou o envio' } })
 
   notificarAdminClienteConfirmou({
     nomeCliente: cliente.nomeCompleto,

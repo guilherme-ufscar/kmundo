@@ -9,23 +9,24 @@ datasource db {
 }
 
 model Usuario {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  senha         String
-  role          Role      @default(CLIENTE)
-  criadoEm     DateTime  @default(now())
-  atualizadoEm DateTime  @updatedAt
-  cliente       Cliente?
+  id           String   @id @default(cuid())
+  email        String   @unique
+  senha        String
+  role         Role     @default(CLIENTE)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  cliente      Cliente?
 
   @@map("usuarios")
 }
 
 model Cliente {
-  id            String        @id @default(cuid())
-  usuarioId     String        @unique
-  usuario       Usuario       @relation(fields: [usuarioId], references: [id])
-  numeroDeSuite Int           @unique
+  id            String               @id @default(cuid())
+  usuarioId     String               @unique
+  usuario       Usuario              @relation(fields: [usuarioId], references: [id])
+  numeroDeSuite Int                  @unique
   nomeCompleto  String
+  documento     String?
   telefone      String
   pais          String
   cep           String?
@@ -36,33 +37,37 @@ model Cliente {
   cidade        String?
   estado        String?
   fotoPerfil    String?
-  status        StatusCliente @default(ATIVA)
-  criadoEm     DateTime      @default(now())
-  atualizadoEm DateTime      @updatedAt
+  status        StatusCliente        @default(ATIVA)
+  criadoEm      DateTime             @default(now())
+  atualizadoEm  DateTime             @updatedAt
   itens         Item[]
   envios        Envio[]
   pedidosCompra PedidoCompra[]
+  caixas        CaixaRecebida[]
+  servicos      SolicitacaoServico[]
+  cobrancas     Cobranca[]
 
   @@index([status])
   @@map("clientes")
 }
 
 model Item {
-  id           String      @id @default(cuid())
+  id           String         @id @default(cuid())
   clienteId    String
-  cliente      Cliente     @relation(fields: [clienteId], references: [id])
+  cliente      Cliente        @relation(fields: [clienteId], references: [id])
   descricao    String
   lojaOrigem   String?
   trackingLoja String?
-  fotos        String[]    @default([])
+  fotos        String[]       @default([])
   observacoes  String?
-  status       StatusItem  @default(RECEBIDO)
-  dataEntrada  DateTime    @default(now())
+  status       StatusItem     @default(RECEBIDO)
+  dataEntrada  DateTime       @default(now())
   dataEnvio    DateTime?
   dataEntrega  DateTime?
-  criadoEm    DateTime    @default(now())
-  atualizadoEm DateTime   @updatedAt
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
   envios       ItemEnvio[]
+  caixa        CaixaRecebida?
 
   @@index([clienteId, status])
   @@index([clienteId, dataEntrada(sort: Desc)])
@@ -77,7 +82,7 @@ model TokenRecuperacao {
   token     String   @unique
   expiresAt DateTime
   usado     Boolean  @default(false)
-  criadoEm DateTime @default(now())
+  criadoEm  DateTime @default(now())
 
   @@map("tokens_recuperacao")
 }
@@ -88,79 +93,186 @@ model ConviteCliente {
   email     String?
   usado     Boolean  @default(false)
   expiresAt DateTime
-  criadoEm DateTime @default(now())
+  criadoEm  DateTime @default(now())
 
   @@map("convites_cliente")
 }
 
 model Configuracao {
-  id                   String   @id @default(cuid())
-  diasGratuitos        Int      @default(30)
-  taxaDiariaArmazem    Float    @default(0)
-  moedaTaxa            String   @default("USD")
-  nomeEmpresa          String   @default("KMundo Warehouse")
-  emailContato         String?
-  whatsappRecepcao     String?
-  chavePix             String?
-  qrCodePix            String?
-  instrucoesPix        String?  @db.Text
-  termosUso            String?  @db.Text
-  criadoEm             DateTime @default(now())
-  atualizadoEm         DateTime @updatedAt
+  id                String   @id @default(cuid())
+  diasGratuitos     Int      @default(30)
+  taxaDiariaArmazem Float    @default(0)
+  moedaTaxa         String   @default("USD")
+  nomeEmpresa       String   @default("KMundo Warehouse")
+  emailContato      String?
+  whatsappRecepcao  String?
+  chavePix          String?
+  qrCodePix         String?
+  instrucoesPix     String?  @db.Text
+  termosUso         String?  @db.Text
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
 
   @@map("configuracoes")
 }
 
 model Envio {
-  id                  String      @id @default(cuid())
+  id                  String        @id @default(cuid())
   clienteId           String
-  cliente             Cliente     @relation(fields: [clienteId], references: [id])
+  cliente             Cliente       @relation(fields: [clienteId], references: [id])
   itens               ItemEnvio[]
   metodoEnvio         MetodoEnvio
-  status              StatusEnvio @default(AGUARDANDO_CONFIRMACAO)
+  status              StatusEnvio   @default(AGUARDANDO_CONFIRMACAO)
   peso                Float?
   largura             Float?
   altura              Float?
   comprimento         Float?
   valorDeclarado      Float?
-  moeda               String?     @default("BRL")
+  moeda               String?       @default("BRL")
   valorFrete          Float?
-  moedaFrete          String?     @default("BRL")
-  fotos               String[]    @default([])
+  moedaFrete          String?       @default("BRL")
+  fotos               String[]      @default([])
   videoUrl            String?
   trackingEnvio       String?
   dataLimitePagamento DateTime?
   observacoes         String?
-  confirmadoCliente   Boolean     @default(false)
-  fretePago           Boolean     @default(false)
-  criadoEm            DateTime    @default(now())
-  atualizadoEm        DateTime    @updatedAt
+  confirmadoCliente   Boolean       @default(false)
+  fretePago           Boolean       @default(false)
+  declaracaoConteudo  String?       @db.Text
+  criadoEm            DateTime      @default(now())
+  atualizadoEm        DateTime      @updatedAt
+  cobrancas           Cobranca[]
+  eventos             EventoEnvio[]
 
   @@index([clienteId, criadoEm(sort: Desc)])
   @@index([clienteId, status])
   @@map("envios")
 }
 
+model CaixaRecebida {
+  id                   String               @id @default(cuid())
+  clienteId            String
+  cliente              Cliente              @relation(fields: [clienteId], references: [id])
+  itemId               String?              @unique
+  item                 Item?                @relation(fields: [itemId], references: [id])
+  tracking             String
+  lojaOrigem           String?
+  comprovanteCompraUrl String
+  fotoEtiquetaUrl      String
+  observacoes          String?              @db.Text
+  recebidoEm           DateTime             @default(now())
+  criadoEm             DateTime             @default(now())
+  atualizadoEm         DateTime             @updatedAt
+  solicitacoes         SolicitacaoServico[]
+
+  @@unique([clienteId, tracking])
+  @@index([tracking])
+  @@index([clienteId, recebidoEm(sort: Desc)])
+  @@map("caixas_recebidas")
+}
+
+model SolicitacaoServico {
+  id           String         @id @default(cuid())
+  clienteId    String
+  cliente      Cliente        @relation(fields: [clienteId], references: [id])
+  caixaId      String?
+  caixa        CaixaRecebida? @relation(fields: [caixaId], references: [id])
+  tipo         TipoServico
+  status       StatusServico  @default(SOLICITADO)
+  descricao    String?        @db.Text
+  fotoUrls     String[]       @default([])
+  videoUrl     String?
+  peso         Float?
+  largura      Float?
+  altura       Float?
+  comprimento  Float?
+  concluidoEm  DateTime?
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+  cobrancas    Cobranca[]
+
+  @@index([clienteId, criadoEm(sort: Desc)])
+  @@index([caixaId])
+  @@map("solicitacoes_servico")
+}
+
+model Cobranca {
+  id             String              @id @default(cuid())
+  clienteId      String
+  cliente        Cliente             @relation(fields: [clienteId], references: [id])
+  envioId        String?
+  envio          Envio?              @relation(fields: [envioId], references: [id])
+  solicitacaoId  String?
+  solicitacao    SolicitacaoServico? @relation(fields: [solicitacaoId], references: [id])
+  descricao      String
+  valor          Float
+  moeda          String              @default("BRL")
+  status         StatusCobranca      @default(PENDENTE)
+  chavePix       String?
+  copiaEColaPix  String?             @db.Text
+  comprovanteUrl String?
+  pagoEm         DateTime?
+  confirmadoEm   DateTime?
+  criadoEm       DateTime            @default(now())
+  atualizadoEm   DateTime            @updatedAt
+  notaFiscal     NotaFiscal?
+
+  @@index([clienteId, criadoEm(sort: Desc)])
+  @@index([status])
+  @@map("cobrancas")
+}
+
+model NotaFiscal {
+  id               String           @id @default(cuid())
+  cobrancaId       String           @unique
+  cobranca         Cobranca         @relation(fields: [cobrancaId], references: [id])
+  tipo             TipoNotaFiscal
+  status           StatusNotaFiscal @default(PENDENTE)
+  numero           String?
+  chaveAcesso      String?
+  urlPdf           String?
+  blingDocumentoId String?
+  erro             String?          @db.Text
+  emitidaEm        DateTime?
+  criadoEm         DateTime         @default(now())
+  atualizadoEm     DateTime         @updatedAt
+
+  @@index([status])
+  @@map("notas_fiscais")
+}
+
+model EventoEnvio {
+  id        String   @id @default(cuid())
+  envioId   String
+  envio     Envio    @relation(fields: [envioId], references: [id], onDelete: Cascade)
+  titulo    String
+  descricao String?  @db.Text
+  criadoEm  DateTime @default(now())
+
+  @@index([envioId, criadoEm])
+  @@map("eventos_envio")
+}
+
 model PedidoCompra {
-  id                     String               @id @default(cuid())
-  clienteId              String
-  cliente                Cliente              @relation(fields: [clienteId], references: [id])
-  itens                  PedidoCompraItem[]
-  status                 StatusPedidoCompra   @default(AGUARDANDO_REVISAO)
-  valorTotal             Float?
-  moeda                  String               @default("BRL")
-  chavePix               String?
-  qrCodePix              String?
-  instrucoesPix          String?
-  linkCartao             String?
-  whatsappRecepcao       String?
-  observacoesCliente     String?              @db.Text
-  observacoesAdmin       String?              @db.Text
-  dataLimitePagamento    DateTime?
-  formaPagamentoCliente  FormaPagamentoPedido?
-  pagoEm                 DateTime?
-  criadoEm               DateTime             @default(now())
-  atualizadoEm           DateTime             @updatedAt
+  id                    String                @id @default(cuid())
+  clienteId             String
+  cliente               Cliente               @relation(fields: [clienteId], references: [id])
+  itens                 PedidoCompraItem[]
+  status                StatusPedidoCompra    @default(AGUARDANDO_REVISAO)
+  valorTotal            Float?
+  moeda                 String                @default("BRL")
+  chavePix              String?
+  qrCodePix             String?
+  instrucoesPix         String?
+  linkCartao            String?
+  whatsappRecepcao      String?
+  observacoesCliente    String?               @db.Text
+  observacoesAdmin      String?               @db.Text
+  dataLimitePagamento   DateTime?
+  formaPagamentoCliente FormaPagamentoPedido?
+  pagoEm                DateTime?
+  criadoEm              DateTime              @default(now())
+  atualizadoEm          DateTime              @updatedAt
 
   @@index([clienteId, criadoEm(sort: Desc)])
   @@index([clienteId, status])
@@ -181,35 +293,35 @@ model PedidoCompraItem {
 }
 
 model Funcionario {
-  id             String                 @id @default(cuid())
-  nomeCompleto   String
-  email          String?
-  telefone       String?
-  cargo          String?
-  dataAdmissao   DateTime?
-  salarioBase    Float?
-  status         StatusFuncionario      @default(ATIVO)
-  observacoes    String?                @db.Text
-  lancamentos    LancamentoFuncionario[]
-  criadoEm       DateTime               @default(now())
-  atualizadoEm   DateTime               @updatedAt
+  id           String                  @id @default(cuid())
+  nomeCompleto String
+  email        String?
+  telefone     String?
+  cargo        String?
+  dataAdmissao DateTime?
+  salarioBase  Float?
+  status       StatusFuncionario       @default(ATIVO)
+  observacoes  String?                 @db.Text
+  lancamentos  LancamentoFuncionario[]
+  criadoEm     DateTime                @default(now())
+  atualizadoEm DateTime                @updatedAt
 
   @@map("funcionarios")
 }
 
 model LancamentoFuncionario {
-  id               String                    @id @default(cuid())
-  funcionarioId    String
-  funcionario      Funcionario               @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
-  tipo             TipoLancamentoFuncionario
-  dataReferencia   DateTime
-  valor            Float?
-  horas            Float?
-  quantidadeDias   Int?
-  arquivoAtestado  String?
-  descricao        String?                   @db.Text
-  criadoEm         DateTime                  @default(now())
-  atualizadoEm     DateTime                  @updatedAt
+  id              String                    @id @default(cuid())
+  funcionarioId   String
+  funcionario     Funcionario               @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  tipo            TipoLancamentoFuncionario
+  dataReferencia  DateTime
+  valor           Float?
+  horas           Float?
+  quantidadeDias  Int?
+  arquivoAtestado String?
+  descricao       String?                   @db.Text
+  criadoEm        DateTime                  @default(now())
+  atualizadoEm    DateTime                  @updatedAt
 
   @@map("lancamentos_funcionario")
 }
@@ -285,4 +397,38 @@ enum TipoLancamentoFuncionario {
   ATESTADO
   DESCONTO
   OBSERVACAO
+}
+
+enum TipoServico {
+  UNBOXING
+  FOTO_VIDEO
+  MEDICAO
+  REEMBALAGEM
+  OUTRO
+}
+
+enum StatusServico {
+  SOLICITADO
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusCobranca {
+  PENDENTE
+  COMPROVANTE_ENVIADO
+  PAGO
+  CANCELADA
+}
+
+enum TipoNotaFiscal {
+  NFE
+  NFSE
+}
+
+enum StatusNotaFiscal {
+  PENDENTE
+  EMITIDA
+  ERRO
+  CANCELADA
 }

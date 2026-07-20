@@ -8,6 +8,7 @@ const criarEnvioSchema = z.object({
   metodoEnvio: z.enum(['FEDEX', 'EMS', 'ENVIO_EM_GRUPO']),
   itemIds: z.array(z.string()).min(1, 'Selecione ao menos um item'),
   valorDeclarado: z.number().positive().optional(),
+  declaracaoConteudo: z.string().min(3).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -29,7 +30,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { metodoEnvio, itemIds, valorDeclarado } = parsed.data
+  const { metodoEnvio, itemIds, valorDeclarado, declaracaoConteudo } = parsed.data
+  if (metodoEnvio !== 'ENVIO_EM_GRUPO' && !declaracaoConteudo) {
+    return NextResponse.json({ error: 'A declaração de conteúdo é obrigatória para FedEx e EMS' }, { status: 400 })
+  }
 
   // Verificar que os itens pertencem ao cliente
   const itens = await prisma.item.findMany({
@@ -44,6 +48,7 @@ export async function POST(req: NextRequest) {
       clienteId: cliente.id,
       metodoEnvio,
       valorDeclarado,
+      declaracaoConteudo,
       itens: {
         create: itemIds.map((itemId) => ({ itemId })),
       },

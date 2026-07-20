@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const clientePerfilSchema = z.object({
   nomeCompleto: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
+  documento: z.string().trim().min(11, 'Informe CPF ou CNPJ').max(18).optional().or(z.literal('')),
   telefone: z.string().min(8, 'Telefone deve ter ao menos 8 caracteres'),
   pais: z.string().min(2, 'País deve ter ao menos 2 caracteres'),
   cep: z.string().optional(),

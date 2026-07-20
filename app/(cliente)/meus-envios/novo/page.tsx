@@ -29,6 +29,7 @@ export default function NovoEnvioPage() {
   const [itensDisponiveis, setItensDisponiveis] = useState<ItemDisponivel[]>([])
   const [itensSelecionados, setItensSelecionados] = useState<Set<string>>(new Set())
   const [valorDeclarado, setValorDeclarado] = useState('')
+  const [declaracaoConteudo, setDeclaracaoConteudo] = useState('')
   const [aceitouTermos, setAceitouTermos] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
@@ -67,6 +68,7 @@ export default function NovoEnvioPage() {
     if (itensSelecionados.size === 0) { setError('Selecione ao menos um item'); return }
     if (!aceitouTermos) { setError('Você deve aceitar os Termos de Uso para continuar'); return }
 
+    if (metodo !== 'ENVIO_EM_GRUPO' && declaracaoConteudo.trim().length < 3) { setError('Informe a declaração de conteúdo para envios individuais'); return }
     setSalvando(true)
     setError('')
     try {
@@ -77,6 +79,7 @@ export default function NovoEnvioPage() {
       if (valorDeclarado && metodo !== 'ENVIO_EM_GRUPO') {
         body.valorDeclarado = parseFloat(valorDeclarado)
       }
+      if (metodo !== 'ENVIO_EM_GRUPO') body.declaracaoConteudo = declaracaoConteudo.trim()
 
       const res = await fetch('/api/envios', {
         method: 'POST',
@@ -213,6 +216,14 @@ export default function NovoEnvioPage() {
         </div>
       )}
 
+      {metodo && metodo !== 'ENVIO_EM_GRUPO' && (
+        <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <label className="font-semibold block mb-1" style={{ color: '#1A1A2E' }}>Declaração de conteúdo *</label>
+          <p className="text-xs mb-3" style={{ color: '#9CA3AF' }}>Descreva de forma objetiva os produtos enviados.</p>
+          <textarea value={declaracaoConteudo} onChange={(e) => setDeclaracaoConteudo(e.target.value)} rows={3} className="w-full rounded-lg border p-3 text-sm" style={{ borderColor: '#E5E7EB' }} placeholder="Ex.: roupas, cosméticos e acessórios" />
+        </div>
+      )}
+
       {/* Termos de Uso */}
       <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <label className="flex items-start gap-3 cursor-pointer">
@@ -243,7 +254,7 @@ export default function NovoEnvioPage() {
       <Button
         type="button"
         onClick={handleSubmit}
-        disabled={salvando || !metodo || itensSelecionados.size === 0 || !aceitouTermos}
+        disabled={salvando || !metodo || itensSelecionados.size === 0 || !aceitouTermos || (metodo !== 'ENVIO_EM_GRUPO' && declaracaoConteudo.trim().length < 3)}
         className="w-full h-12 font-semibold text-white rounded-xl"
         style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '12px' }}
       >

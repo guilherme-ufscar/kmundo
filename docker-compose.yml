@@ -17,6 +17,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - RESEND_API_KEY=${RESEND_API_KEY}
+      - UPLOAD_DIR=/app/uploads
       - MAIL_HOST=${MAIL_HOST}
       - MAIL_USER=${MAIL_USER}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
@@ -28,6 +29,8 @@ services:
         condition: service_healthy
     networks:
       - suite-network
+    volumes:
+      - ./uploads:/app/uploads
     restart: unless-stopped
 
   postgres:
@@ -47,8 +50,30 @@ services:
       - suite-network
     restart: unless-stopped
 
+  backup:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-56}
+    volumes:
+      - ./backups:/backups
+      - ./docker/backup/backup.sh:/usr/local/bin/backup:ro
+      - ./docker/backup/crontab:/etc/crontabs/root:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["/bin/sh", "-c", "sh /usr/local/bin/backup && exec crond -f -l 2"]
+    networks:
+      - suite-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+    name: kmundo_postgres_data
 
 networks:
   suite-network:

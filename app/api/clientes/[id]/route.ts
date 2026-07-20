@@ -44,6 +44,11 @@ export async function DELETE(
   }
 
   await prisma.$transaction(async (tx) => {
+    await tx.notaFiscal.deleteMany({ where: { cobranca: { clienteId: params.id } } })
+    await tx.cobranca.deleteMany({ where: { clienteId: params.id } })
+    await tx.solicitacaoServico.deleteMany({ where: { clienteId: params.id } })
+    await tx.caixaRecebida.deleteMany({ where: { clienteId: params.id } })
+    await tx.eventoEnvio.deleteMany({ where: { envio: { clienteId: params.id } } })
     await tx.itemEnvio.deleteMany({ where: { item: { clienteId: params.id } } })
     await tx.itemEnvio.deleteMany({ where: { envio: { clienteId: params.id } } })
     await tx.item.deleteMany({ where: { clienteId: params.id } })

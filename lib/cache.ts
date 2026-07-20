@@ -79,8 +79,7 @@ export const getAdminDashboard = unstable_cache(
  * Cache de itens do cliente.
  * Revalida a cada 30 segundos.
  */
-export const getClienteItens = unstable_cache(
-  async (usuarioId: string) => {
+export async function getClienteItens(usuarioId: string) {
     const cliente = await prisma.cliente.findFirst({
       where: { usuario: { id: usuarioId } },
     })
@@ -93,10 +92,7 @@ export const getClienteItens = unstable_cache(
     })
 
     return { cliente, itens }
-  },
-  ['cliente-itens'],
-  { revalidate: 30, tags: ['cliente-itens'] }
-)
+}
 
 /**
  * Cache de envios do cliente.

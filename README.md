@@ -89,6 +89,26 @@ cp .env.example .env
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
+Os dados do PostgreSQL ficam no volume Docker `kmundo_postgres_data` e os uploads em `./uploads`. Ambos sobrevivem a `docker compose up -d --build`. Não use `docker compose down -v` em produção: esse comando remove o volume do banco.
+
+### Backup e restauração
+
+O serviço `backup` gera um backup completo logo após subir e, depois, todo domingo às 03:00 UTC. Os arquivos ficam em `./backups`, não entram no Git e são mantidos por 56 dias (`BACKUP_RETENTION_DAYS`). Cada backup é validado com `pg_restore` e recebe um checksum SHA-256.
+
+Para criar um backup manual:
+
+```bash
+docker compose exec backup sh /usr/local/bin/backup
+```
+
+Para restaurar, pare a aplicação, escolha um arquivo `.dump` em `./backups` e execute:
+
+```bash
+docker compose stop app
+docker compose exec -T postgres pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists < backups/kmundo-AAAA-MM-DDTHH-MM-SSZ.dump
+docker compose start app
+```
+
 ### 3. Execute migrations e seed
 
 ```bash
