@@ -16,6 +16,8 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
+      - BLING_ACCESS_TOKEN=${BLING_ACCESS_TOKEN}
+      - BLING_SERVICO_CODIGO=${BLING_SERVICO_CODIGO}
       - UPLOAD_DIR=/app/uploads
       - NODE_ENV=production
     depends_on:
