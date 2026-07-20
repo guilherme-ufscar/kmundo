@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -12,7 +13,7 @@ const schema = z.object({
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: { usuarioId: session.user.id } }) : null
+  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) }) : null
   const cobrancas = await prisma.cobranca.findMany({
     where: cliente ? { clienteId: cliente.id } : undefined,
     include: { cliente: { select: { nomeCompleto: true, numeroDeSuite: true } }, notaFiscal: true, envio: { select: { id: true } }, solicitacao: { select: { id: true, tipo: true } } },

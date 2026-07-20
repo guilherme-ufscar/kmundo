@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 import { notificarClienteStatusItem } from '@/lib/email'
 
@@ -36,7 +37,7 @@ export async function GET(
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
     if (!cliente || item.clienteId !== cliente.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })

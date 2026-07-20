@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteMatchesSession } from '@/lib/cliente-session'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -15,12 +16,12 @@ export async function POST(
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
 
-  const cliente = await prisma.cliente.findUnique({ where: { id: params.id } })
+  const cliente = await prisma.cliente.findUnique({ where: { id: params.id }, include: { usuario: { select: { email: true } } } })
   if (!cliente) {
     return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
   }
 
-  if (session.user.role !== 'ADMIN' && cliente.usuarioId !== session.user.id) {
+  if (session.user.role !== 'ADMIN' && !clienteMatchesSession(cliente, session.user)) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 

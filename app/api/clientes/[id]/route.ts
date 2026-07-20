@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteMatchesSession } from '@/lib/cliente-session'
 import { clientePatchSchema } from '@/lib/validations/cliente'
 
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
   }
 
   // Only own client or admin can view
-  if (session.user.role !== 'ADMIN' && cliente.usuarioId !== session.user.id) {
+  if (session.user.role !== 'ADMIN' && !clienteMatchesSession(cliente, session.user)) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
@@ -71,6 +72,7 @@ export async function PATCH(
 
   const cliente = await prisma.cliente.findUnique({
     where: { id: params.id },
+    include: { usuario: { select: { email: true } } },
   })
 
   if (!cliente) {
@@ -78,7 +80,7 @@ export async function PATCH(
   }
 
   // Only own client can update their profile (admin cannot use this endpoint for security)
-  if (cliente.usuarioId !== session.user.id && session.user.role !== 'ADMIN') {
+  if (!clienteMatchesSession(cliente, session.user) && session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 

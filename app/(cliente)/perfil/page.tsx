@@ -1,12 +1,13 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { PerfilForm } from '@/components/cliente/PerfilForm'
 
 export default async function PerfilPage() {
   const session = await auth()
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
+    where: clienteWhereFromSession(session!.user!),
     include: { usuario: { select: { email: true } } },
   })
 

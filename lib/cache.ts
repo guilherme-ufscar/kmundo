@@ -1,14 +1,21 @@
 import { unstable_cache } from 'next/cache'
 import { prisma } from './prisma'
+import { clienteWhereFromSession } from './cliente-session'
+
+type ClienteSessionUser = {
+  id?: string | null
+  email?: string | null
+  numeroDeSuite?: number | null
+}
 
 /**
  * Cache de dados do dashboard do cliente.
  * Revalida a cada 30 segundos — suficiente para não parecer stale,
  * mas evita bater no banco a cada navegação.
  */
-export async function getClienteDashboard(usuarioId: string) {
+export async function getClienteDashboard(user: ClienteSessionUser) {
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: usuarioId } },
+    where: clienteWhereFromSession(user),
     include: {
       itens: {
         orderBy: { dataEntrada: 'desc' },
@@ -75,9 +82,9 @@ export const getAdminDashboard = unstable_cache(
  * Cache de itens do cliente.
  * Revalida a cada 30 segundos.
  */
-export async function getClienteItens(usuarioId: string) {
+export async function getClienteItens(user: ClienteSessionUser) {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
+      where: clienteWhereFromSession(user),
     })
 
     if (!cliente) return null
@@ -94,9 +101,9 @@ export async function getClienteItens(usuarioId: string) {
  * Cache de envios do cliente.
  * Revalida a cada 30 segundos.
  */
-export async function getClienteEnvios(usuarioId: string) {
+export async function getClienteEnvios(user: ClienteSessionUser) {
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: usuarioId } },
+    where: clienteWhereFromSession(user),
   })
 
   if (!cliente) return null

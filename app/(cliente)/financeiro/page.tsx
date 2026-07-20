@@ -1,10 +1,11 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { CobrancasCliente } from '@/components/cliente/CobrancasCliente'
 
 export default async function FinanceiroPage() {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({ where: { usuarioId: session!.user!.id } })
+  const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session!.user!) })
   if (!cliente) return null
   const [cobrancas, servicos] = await Promise.all([
     prisma.cobranca.findMany({ where: { clienteId: cliente.id }, include: { notaFiscal: true }, orderBy: { criadoEm: 'desc' } }),

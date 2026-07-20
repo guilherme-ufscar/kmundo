@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
@@ -22,7 +23,7 @@ const statusColors: Record<string, string> = {
 
 export default async function PedidoDetalhePage({ params }: { params: { id: string } }) {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({ where: { usuario: { id: session!.user!.id } } })
+  const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session!.user!) })
   if (!cliente) notFound()
 
   const pedido = await prisma.pedidoCompra.findFirst({

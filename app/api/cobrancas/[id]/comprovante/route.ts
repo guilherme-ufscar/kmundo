@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const cobranca = await prisma.cobranca.findUnique({ where: { id: params.id } })
   if (!cobranca) return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
-  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: { usuarioId: session.user.id } }) : null
+  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) }) : null
   if (cliente && cobranca.clienteId !== cliente.id) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const file = (await req.formData()).get('comprovante')
   if (!(file instanceof File) || file.size === 0 || file.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'Envie um comprovante de até 10 MB' }, { status: 400 })

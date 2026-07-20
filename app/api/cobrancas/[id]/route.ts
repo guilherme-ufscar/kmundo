@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 
 const schema = z.object({ status: z.enum(['PENDENTE', 'COMPROVANTE_ENVIADO', 'PAGO', 'CANCELADA']).optional(), comprovanteUrl: z.string().min(1).optional() })
@@ -10,7 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const cobranca = await prisma.cobranca.findUnique({ where: { id: params.id } })
   if (!cobranca) return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
-  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: { usuarioId: session.user.id } }) : null
+  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) }) : null
   if (cliente && cobranca.clienteId !== cliente.id) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const parsed = schema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })

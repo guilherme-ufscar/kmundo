@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { atualizarPedidoCompraAdminSchema } from '@/lib/validations/pedido-compra'
 
 export async function GET(
@@ -25,7 +26,7 @@ export async function GET(
   }
 
   if (session.user.role !== 'ADMIN') {
-    const cliente = await prisma.cliente.findFirst({ where: { usuario: { id: session.user.id } } })
+    const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) })
     if (!cliente || pedido.clienteId !== cliente.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }

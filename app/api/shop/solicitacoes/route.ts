@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const cliente = await prisma.cliente.findFirst({ where: { usuarioId: session.user.id } })
+  const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) })
   if (!cliente) return NextResponse.json({ error: 'Cliente nao encontrada' }, { status: 404 })
 
   const produto = await prisma.produtoShop.findFirst({ where: { id: parsed.data.produtoId, ativo: true } })

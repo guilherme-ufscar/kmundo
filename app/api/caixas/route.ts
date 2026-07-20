@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 
 const schema = z.object({ clienteId: z.string(), tracking: z.string().min(3), lojaOrigem: z.string().optional(), comprovanteCompraUrl: z.string().min(1), fotoEtiquetaUrl: z.string().min(1), observacoes: z.string().optional(), itemId: z.string().optional() })
@@ -8,7 +9,7 @@ const schema = z.object({ clienteId: z.string(), tracking: z.string().min(3), lo
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: { usuarioId: session.user.id } }) : null
+  const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) }) : null
   return NextResponse.json(await prisma.caixaRecebida.findMany({ where: cliente ? { clienteId: cliente.id } : undefined, include: { cliente: { select: { nomeCompleto: true, numeroDeSuite: true } }, item: true, solicitacoes: true }, orderBy: { recebidoEm: 'desc' } }))
 }
 

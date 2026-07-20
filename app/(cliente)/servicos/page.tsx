@@ -1,10 +1,11 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { ServicosCliente } from '@/components/cliente/ServicosCliente'
 
 export default async function ServicosPage() {
   const session = await auth()
-  const cliente = await prisma.cliente.findFirst({ where: { usuarioId: session!.user!.id } })
+  const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session!.user!) })
   if (!cliente) return null
 
   const [caixas, servicos] = await Promise.all([

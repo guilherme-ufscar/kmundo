@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -43,7 +44,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
   const session = await auth()
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
+    where: clienteWhereFromSession(session!.user!),
   })
 
   if (!cliente) notFound()

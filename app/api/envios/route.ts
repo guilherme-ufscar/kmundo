@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 import { notificarAdminNovoEnvio, notificarClienteEnvioSolicitado } from '@/lib/email'
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session.user.id } },
+    where: clienteWhereFromSession(session.user),
   })
   if (!cliente) {
     return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
@@ -86,7 +87,7 @@ export async function GET(req: NextRequest) {
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
     if (!cliente) return NextResponse.json([])
     where['clienteId'] = cliente.id
