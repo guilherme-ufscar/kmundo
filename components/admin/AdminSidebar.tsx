@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail, FileText, ShoppingBag, BriefcaseBusiness, WalletCards } from 'lucide-react'
+import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail, FileText, ShoppingBag, BriefcaseBusiness, WalletCards, PackageCheck } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +12,8 @@ const navLinks = [
   { href: '/admin/clientes', label: 'Clientes', icon: Users },
   { href: '/admin/itens', label: 'Itens', icon: List },
   { href: '/admin/envios', label: 'Envios', icon: Truck },
+  { href: '/admin/operacional', label: 'Operacional', icon: PackageCheck },
+  { href: '/admin/shop', label: 'Shop', icon: ShoppingBag },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/admin/financeiro', label: 'Financeiro', icon: WalletCards },
   { href: '/admin/funcionarios', label: 'Funcionários', icon: BriefcaseBusiness },

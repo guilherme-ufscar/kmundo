@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-const schema = z.object({ clienteId: z.string(), tracking: z.string().min(3), lojaOrigem: z.string().optional(), comprovanteCompraUrl: z.string().url(), fotoEtiquetaUrl: z.string().url(), observacoes: z.string().optional(), itemId: z.string().optional() })
+const schema = z.object({ clienteId: z.string(), tracking: z.string().min(3), lojaOrigem: z.string().optional(), comprovanteCompraUrl: z.string().min(1), fotoEtiquetaUrl: z.string().min(1), observacoes: z.string().optional(), itemId: z.string().optional() })
 
 export async function GET() {
   const session = await auth()

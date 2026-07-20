@@ -6,31 +6,27 @@ import { prisma } from './prisma'
  * Revalida a cada 30 segundos — suficiente para não parecer stale,
  * mas evita bater no banco a cada navegação.
  */
-export const getClienteDashboard = unstable_cache(
-  async (usuarioId: string) => {
-    const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
-      include: {
-        itens: {
-          orderBy: { dataEntrada: 'desc' },
-          take: 5,
-        },
+export async function getClienteDashboard(usuarioId: string) {
+  const cliente = await prisma.cliente.findFirst({
+    where: { usuario: { id: usuarioId } },
+    include: {
+      itens: {
+        orderBy: { dataEntrada: 'desc' },
+        take: 5,
       },
-    })
+    },
+  })
 
-    if (!cliente) return null
+  if (!cliente) return null
 
-    const [emArmazem, emEnvio, entregues] = await Promise.all([
-      prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } }),
-      prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['EM_ENVIO', 'ENVIADO'] } } }),
-      prisma.item.count({ where: { clienteId: cliente.id, status: 'ENTREGUE' } }),
-    ])
+  const [emArmazem, emEnvio, entregues] = await Promise.all([
+    prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } }),
+    prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['EM_ENVIO', 'ENVIADO'] } } }),
+    prisma.item.count({ where: { clienteId: cliente.id, status: 'ENTREGUE' } }),
+  ])
 
-    return { cliente, emArmazem, emEnvio, entregues }
-  },
-  ['cliente-dashboard'],
-  { revalidate: 30, tags: ['cliente-dashboard'] }
-)
+  return { cliente, emArmazem, emEnvio, entregues }
+}
 
 /**
  * Cache de métricas do admin dashboard.
@@ -98,24 +94,20 @@ export async function getClienteItens(usuarioId: string) {
  * Cache de envios do cliente.
  * Revalida a cada 30 segundos.
  */
-export const getClienteEnvios = unstable_cache(
-  async (usuarioId: string) => {
-    const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
-    })
+export async function getClienteEnvios(usuarioId: string) {
+  const cliente = await prisma.cliente.findFirst({
+    where: { usuario: { id: usuarioId } },
+  })
 
-    if (!cliente) return null
+  if (!cliente) return null
 
-    const envios = await prisma.envio.findMany({
-      where: { clienteId: cliente.id },
-      include: {
-        itens: { include: { item: { select: { descricao: true } } } },
-      },
-      orderBy: { criadoEm: 'desc' },
-    })
+  const envios = await prisma.envio.findMany({
+    where: { clienteId: cliente.id },
+    include: {
+      itens: { include: { item: { select: { descricao: true } } } },
+    },
+    orderBy: { criadoEm: 'desc' },
+  })
 
-    return { cliente, envios }
-  },
-  ['cliente-envios'],
-  { revalidate: 30, tags: ['cliente-envios'] }
-)
+  return { cliente, envios }
+}

@@ -287,13 +287,34 @@ model PedidoCompraItem {
   id             String       @id @default(cuid())
   pedidoCompraId String
   pedidoCompra   PedidoCompra @relation(fields: [pedidoCompraId], references: [id], onDelete: Cascade)
+  produtoShopId  String?
+  produtoShop    ProdutoShop? @relation(fields: [produtoShopId], references: [id], onDelete: SetNull)
   nomeProduto    String
   urlProduto     String?
   quantidade     Int          @default(1)
   variacao       String?
   observacoes    String?      @db.Text
 
+  @@index([produtoShopId])
   @@map("pedidos_compra_itens")
+}
+
+model ProdutoShop {
+  id            String             @id @default(cuid())
+  nome          String
+  descricao     String?            @db.Text
+  precoEstimado Float?
+  moeda         String             @default("BRL")
+  imagemUrl     String?
+  urlProduto    String?
+  ativo         Boolean            @default(true)
+  ordem         Int                @default(0)
+  criadoEm      DateTime           @default(now())
+  atualizadoEm  DateTime           @updatedAt
+  pedidoItens   PedidoCompraItem[]
+
+  @@index([ativo, ordem])
+  @@map("produtos_shop")
 }
 
 model Funcionario {

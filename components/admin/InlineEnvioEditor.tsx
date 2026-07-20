@@ -21,6 +21,7 @@ interface Props {
     trackingEnvio: string | null
     dataLimitePagamento: string | null
     observacoes: string | null
+    declaracaoConteudo: string | null
     fretePago: boolean
   }
   fotos: string[]

@@ -209,6 +209,7 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
                           trackingEnvio: envio.trackingEnvio,
                           dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
                           observacoes: envio.observacoes,
+                          declaracaoConteudo: envio.declaracaoConteudo,
                           fretePago: envio.fretePago,
                         }}
                         fotos={envio.fotos}

@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-const schema = z.object({ status: z.enum(['PENDENTE', 'COMPROVANTE_ENVIADO', 'PAGO', 'CANCELADA']).optional(), comprovanteUrl: z.string().url().optional() })
+const schema = z.object({ status: z.enum(['PENDENTE', 'COMPROVANTE_ENVIADO', 'PAGO', 'CANCELADA']).optional(), comprovanteUrl: z.string().min(1).optional() })
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()

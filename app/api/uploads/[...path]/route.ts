@@ -24,6 +24,10 @@ export async function GET(
       ext === 'png' ? 'image/png' :
       ext === 'gif' ? 'image/gif' :
       ext === 'webp' ? 'image/webp' :
+      ext === 'pdf' ? 'application/pdf' :
+      ext === 'mp4' ? 'video/mp4' :
+      ext === 'mov' ? 'video/quicktime' :
+      ext === 'webm' ? 'video/webm' :
       'image/jpeg'
 
     return new NextResponse(buffer, {

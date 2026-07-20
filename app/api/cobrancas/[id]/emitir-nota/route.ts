@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { emitirNotaNoBling } from '@/lib/bling'
+import { salvarPdfNota } from '@/lib/nota-pdf'
 import { z } from 'zod'
 
 const schema = z.object({ tipo: z.enum(['NFE', 'NFSE']) })
@@ -18,8 +19,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (cobranca.notaFiscal?.status === 'EMITIDA') return NextResponse.json(cobranca.notaFiscal)
   const nota = await prisma.notaFiscal.upsert({ where: { cobrancaId: cobranca.id }, create: { cobrancaId: cobranca.id, tipo: parsed.data.tipo }, update: { tipo: parsed.data.tipo, status: 'PENDENTE', erro: null } })
   try {
-    const resultado = await emitirNotaNoBling({ tipo: parsed.data.tipo, descricao: `${cobranca.descricao} | Suite #${cobranca.cliente.numeroDeSuite}`, valor: cobranca.valor, cliente: { nome: cobranca.cliente.nomeCompleto, documento: cobranca.cliente.documento, telefone: cobranca.cliente.telefone, email: cobranca.cliente.usuario.email, endereco: cobranca.cliente.endereco, numero: cobranca.cliente.numero, bairro: cobranca.cliente.bairro, cidade: cobranca.cliente.cidade, estado: cobranca.cliente.estado, cep: cobranca.cliente.cep } })
-    const atualizada = await prisma.notaFiscal.update({ where: { id: nota.id }, data: { status: 'EMITIDA', numero: resultado.numero?.toString(), chaveAcesso: resultado.chaveAcesso, urlPdf: resultado.linkPDF ?? resultado.linkDanfe, blingDocumentoId: resultado.id?.toString(), emitidaEm: new Date() } })
+    const descricao = `${cobranca.descricao} | Suite #${cobranca.cliente.numeroDeSuite}`
+    const resultado = await emitirNotaNoBling({ tipo: parsed.data.tipo, descricao, valor: cobranca.valor, cliente: { nome: cobranca.cliente.nomeCompleto, documento: cobranca.cliente.documento, telefone: cobranca.cliente.telefone, email: cobranca.cliente.usuario.email, endereco: cobranca.cliente.endereco, numero: cobranca.cliente.numero, bairro: cobranca.cliente.bairro, cidade: cobranca.cliente.cidade, estado: cobranca.cliente.estado, cep: cobranca.cliente.cep } })
+    const emitidaEm = new Date()
+    const urlPdf = await salvarPdfNota({
+      cobrancaId: cobranca.id,
+      numero: resultado.numero?.toString(),
+      clienteNome: cobranca.cliente.nomeCompleto,
+      suite: cobranca.cliente.numeroDeSuite,
+      documento: cobranca.cliente.documento,
+      descricao,
+      valor: cobranca.valor,
+      moeda: cobranca.moeda,
+      emitidaEm,
+      remoteUrl: resultado.linkPDF ?? resultado.linkDanfe,
+    })
+    const atualizada = await prisma.notaFiscal.update({ where: { id: nota.id }, data: { status: 'EMITIDA', numero: resultado.numero?.toString(), chaveAcesso: resultado.chaveAcesso, urlPdf, blingDocumentoId: resultado.id?.toString(), emitidaEm } })
     return NextResponse.json(atualizada)
   } catch (error) {
     const erro = error instanceof Error ? error.message : 'Erro desconhecido ao emitir nota'

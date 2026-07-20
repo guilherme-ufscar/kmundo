@@ -25,6 +25,7 @@ const formSchema = z.object({
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().optional(),
   observacoes: z.string().optional(),
+  declaracaoConteudo: z.string().optional(),
   fretePago: z.boolean().optional(),
 })
 
@@ -55,6 +56,7 @@ interface EnvioData {
   trackingEnvio: string | null
   dataLimitePagamento: string | null
   observacoes: string | null
+  declaracaoConteudo: string | null
   fretePago: boolean
 }
 
@@ -88,6 +90,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
         ? new Date(envio.dataLimitePagamento).toISOString().slice(0, 10)
         : '',
       observacoes: envio.observacoes ?? '',
+      declaracaoConteudo: envio.declaracaoConteudo ?? '',
       fretePago: envio.fretePago,
     },
   })
@@ -116,6 +119,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
         body.dataLimitePagamento = new Date(data.dataLimitePagamento).toISOString()
       }
       if (data.observacoes) body.observacoes = data.observacoes
+      if (envio.metodoEnvio !== 'ENVIO_EM_GRUPO' && data.declaracaoConteudo) body.declaracaoConteudo = data.declaracaoConteudo
       body.fretePago = fretePago
 
       const res = await fetch(`/api/envios/${envio.id}`, {
@@ -329,6 +333,18 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
                   {...register('observacoes')}
                 />
               </div>
+              {envio.metodoEnvio !== 'ENVIO_EM_GRUPO' && (
+                <div>
+                  <Label className="text-xs" style={{ color: '#374151' }}>Declaracao de conteudo *</Label>
+                  <textarea
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    rows={3}
+                    placeholder="Produtos declarados para FedEx/EMS"
+                    style={{ borderRadius: '8px' }}
+                    {...register('declaracaoConteudo')}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

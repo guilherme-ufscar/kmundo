@@ -12,7 +12,7 @@ const patchAdminSchema = z.object({
   comprimento: z.number().positive().optional(),
   valorDeclarado: z.number().positive().optional(),
   moeda: z.string().optional(),
-  valorFrete: z.number().min(0).optional(),
+  valorFrete: z.number().min(0).nullable().optional(),
   moedaFrete: z.string().optional(),
   fotos: z.array(z.string()).optional(),
   videoUrl: z.string().optional(),
@@ -121,6 +121,26 @@ export async function PATCH(
         cliente: { include: { usuario: { select: { email: true } } } },
       },
     })
+
+    if (typeof parsed.data.valorFrete === 'number' && parsed.data.valorFrete > 0) {
+      const config = await prisma.configuracao.findFirst()
+      const descricao = `Frete ${atualizado.metodoEnvio} | Suite #${atualizado.cliente.numeroDeSuite}`
+      const cobranca = await prisma.cobranca.findFirst({ where: { envioId: atualizado.id } })
+      const cobrancaData = {
+        clienteId: atualizado.clienteId,
+        envioId: atualizado.id,
+        descricao,
+        valor: parsed.data.valorFrete,
+        moeda: parsed.data.moedaFrete ?? atualizado.moedaFrete ?? 'BRL',
+        chavePix: config?.chavePix ?? null,
+        copiaEColaPix: config?.instrucoesPix ?? config?.chavePix ?? null,
+        status: parsed.data.fretePago ? 'PAGO' as const : cobranca?.status ?? 'PENDENTE' as const,
+        ...(parsed.data.fretePago ? { pagoEm: new Date(), confirmadoEm: new Date() } : {}),
+      }
+      if (cobranca) await prisma.cobranca.update({ where: { id: cobranca.id }, data: cobrancaData })
+      else await prisma.cobranca.create({ data: cobrancaData })
+      await prisma.eventoEnvio.create({ data: { envioId: atualizado.id, titulo: 'Cobranca de frete atualizada', descricao: `${cobrancaData.moeda} ${cobrancaData.valor.toFixed(2)}` } })
+    }
 
     if (parsed.data.status && parsed.data.status !== envio.status) {
       await prisma.eventoEnvio.create({ data: { envioId: envio.id, titulo: 'Status atualizado', descricao: `Status alterado para ${parsed.data.status}` } })

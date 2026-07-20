@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 const createSchema = z.object({ caixaId: z.string().optional(), tipo: z.enum(['UNBOXING', 'FOTO_VIDEO', 'MEDICAO', 'REEMBALAGEM', 'OUTRO']), descricao: z.string().optional() })
-const patchSchema = z.object({ status: z.enum(['SOLICITADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO']).optional(), fotoUrls: z.array(z.string().url()).optional(), videoUrl: z.string().url().optional(), peso: z.number().positive().optional(), largura: z.number().positive().optional(), altura: z.number().positive().optional(), comprimento: z.number().positive().optional(), descricao: z.string().optional() })
+const patchSchema = z.object({ status: z.enum(['SOLICITADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO']).optional(), fotoUrls: z.array(z.string().min(1)).optional(), videoUrl: z.string().min(1).optional(), peso: z.number().positive().optional(), largura: z.number().positive().optional(), altura: z.number().positive().optional(), comprimento: z.number().positive().optional(), descricao: z.string().optional() })
 
 async function clienteDaSessao(userId: string) { return prisma.cliente.findFirst({ where: { usuarioId: userId } }) }
 
