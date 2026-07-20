@@ -39,7 +39,7 @@ export function ClienteSidebar({ nomeCompleto, numeroDeSuite }: ClienteSidebarPr
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1">
           {navLinks.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(href + '/')
             return (
@@ -98,14 +98,15 @@ export function ClienteSidebar({ nomeCompleto, numeroDeSuite }: ClienteSidebarPr
       </div>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden border-t" style={{ background: '#1A1A2E', borderColor: 'rgba(255,255,255,0.12)' }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t overflow-x-auto" style={{ background: '#1A1A2E', borderColor: 'rgba(255,255,255,0.12)' }}>
+        <div className="flex min-w-max">
         {navLinks.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
               href={href}
-              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors"
+              className="flex flex-col items-center justify-center py-2 px-3 gap-0.5 min-w-14 transition-colors"
               style={{ color: isActive ? '#FF6B9D' : 'rgba(255,255,255,0.4)' }}
             >
               <Icon className="w-5 h-5" />
@@ -115,12 +116,13 @@ export function ClienteSidebar({ nomeCompleto, numeroDeSuite }: ClienteSidebarPr
         })}
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5"
+            className="flex flex-col items-center justify-center py-2 px-3 gap-0.5 min-w-14"
           style={{ color: 'rgba(255,255,255,0.4)' }}
         >
           <LogOut className="w-5 h-5" />
           <span className="text-xs font-medium">Sair</span>
         </button>
+        </div>
       </nav>
     </>
   )

@@ -14,13 +14,18 @@ type Produto = {
   imagemUrl: string | null
 }
 
-export function ShopVitrine({ produtos }: { produtos: Produto[] }) {
+export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Produto[]; podeSolicitar?: boolean }) {
   const router = useRouter()
   const [quantidades, setQuantidades] = useState<Record<string, number>>({})
   const [variacoes, setVariacoes] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState<string | null>(null)
 
   async function solicitar(produto: Produto) {
+    if (!podeSolicitar) {
+      toast.info('Entre como cliente para solicitar compra')
+      router.push('/login')
+      return
+    }
     setLoading(produto.id)
     const res = await fetch('/api/shop/solicitacoes', {
       method: 'POST',
