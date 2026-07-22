@@ -4,6 +4,18 @@ import { prisma } from '@/lib/prisma'
 import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 import { notificarClienteStatusEnvio, notificarAdminClienteConfirmou, notificarClienteFretePago } from '@/lib/email'
+import { unlink } from 'fs/promises'
+import path from 'path'
+
+const uploadDir = process.env.UPLOAD_DIR ?? '/app/uploads'
+
+async function apagarUploadSeguro(url: string) {
+  if (!url.startsWith('/uploads/')) return
+  const relativePath = url.replace(/^\/uploads\//, '')
+  const fullPath = path.resolve(uploadDir, relativePath)
+  const base = path.resolve(uploadDir)
+  if (fullPath.startsWith(base)) await unlink(fullPath).catch(() => undefined)
+}
 
 const patchAdminSchema = z.object({
   status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']).optional(),
@@ -112,6 +124,10 @@ export async function PATCH(
     const data: Record<string, unknown> = { ...parsed.data }
     if (parsed.data.dataLimitePagamento) {
       data.dataLimitePagamento = new Date(parsed.data.dataLimitePagamento)
+    }
+    if (parsed.data.fotos) {
+      const removidas = envio.fotos.filter((foto) => !parsed.data.fotos?.includes(foto))
+      await Promise.all(removidas.map(apagarUploadSeguro))
     }
 
     const atualizado = await prisma.envio.update({

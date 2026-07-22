@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type Cobranca = {
@@ -28,6 +29,12 @@ export function CobrancasAdmin({ cobrancas }: { cobrancas: Cobranca[] }) {
     if (res.ok) { router.refresh(); toast.success('Nota emitida e PDF salvo') }
     else toast.error((await res.json()).error ?? 'Nao foi possivel emitir a nota')
   }
+  async function apagarComprovante(id: string) {
+    if (!confirm('Apagar este comprovante?')) return
+    const res = await fetch(`/api/cobrancas/${id}/comprovante`, { method: 'DELETE' })
+    if (res.ok) { router.refresh(); toast.success('Comprovante apagado') }
+    else toast.error((await res.json()).error ?? 'Nao foi possivel apagar o comprovante')
+  }
   return (
     <div className="space-y-3">
       {cobrancas.map(c => (
@@ -42,6 +49,12 @@ export function CobrancasAdmin({ cobrancas }: { cobrancas: Cobranca[] }) {
           </div>
           <div className="flex flex-wrap gap-2">
             {c.comprovanteUrl && <a href={c.comprovanteUrl} target="_blank" className="px-3 py-1.5 text-xs rounded-lg bg-gray-100">Comprovante</a>}
+            {c.comprovanteUrl && !c.notaFiscal?.urlPdf && (
+              <button onClick={() => apagarComprovante(c.id)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg" style={{ background: '#FEF2F2', color: '#DC2626' }}>
+                <Trash2 className="w-3.5 h-3.5" />
+                Apagar comprovante
+              </button>
+            )}
             {c.status === 'COMPROVANTE_ENVIADO' && <button onClick={() => atualizar(c.id, { status: 'PAGO' })} className="px-3 py-1.5 text-xs rounded-lg text-white" style={{ background: '#16A34A' }}>Confirmar pagamento</button>}
             {c.status === 'PAGO' && !c.notaFiscal?.urlPdf && <button onClick={() => emitir(c.id)} className="px-3 py-1.5 text-xs rounded-lg text-white" style={{ background: '#1A1A2E' }}>Emitir NFS-e</button>}
             {c.notaFiscal?.urlPdf && <a href={c.notaFiscal.urlPdf} target="_blank" className="px-3 py-1.5 text-xs rounded-lg" style={{ background: '#ECFDF5', color: '#15803D' }}>PDF da nota</a>}

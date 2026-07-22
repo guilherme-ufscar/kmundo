@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Camera, CheckCircle2 } from 'lucide-react'
+import { Camera, CheckCircle2, Trash2 } from 'lucide-react'
 
 const formSchema = z.object({
   status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']),
@@ -70,6 +70,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
   const [salvando, setSalvando] = useState(false)
   const [fretePago, setFretePago] = useState(envio.fretePago)
   const [uploading, setUploading] = useState(false)
+  const [removendoFoto, setRemovendoFoto] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { register, handleSubmit } = useForm<FormData>({
@@ -166,6 +167,28 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function removerFoto(foto: string) {
+    if (!confirm('Remover esta foto da caixa?')) return
+    setRemovendoFoto(foto)
+    try {
+      const res = await fetch(`/api/envios/${envio.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fotos: fotos.filter((atual) => atual !== foto) }),
+      })
+      if (res.ok) {
+        toast.success('Foto removida')
+        router.refresh()
+      } else {
+        toast.error((await res.json()).error ?? 'Nao foi possivel remover a foto')
+      }
+    } catch {
+      toast.error('Erro de conexao')
+    } finally {
+      setRemovendoFoto(null)
     }
   }
 
@@ -354,14 +377,25 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
               <h2 className="font-semibold mb-3 text-sm" style={{ color: '#1A1A2E' }}>Fotos da Caixa ({fotos.length})</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {fotos.map((foto, idx) => (
-                  <a key={idx} href={foto} target="_blank" rel="noopener noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={foto}
-                      alt={`Foto ${idx + 1}`}
-                      className="w-full aspect-square object-cover rounded-xl hover:opacity-90 transition-opacity"
-                    />
-                  </a>
+                  <div key={foto} className="relative group">
+                    <a href={foto} target="_blank" rel="noopener noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={foto}
+                        alt={`Foto ${idx + 1}`}
+                        className="w-full aspect-square object-cover rounded-xl hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removerFoto(foto)}
+                      disabled={removendoFoto === foto}
+                      className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white shadow-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
+                      title="Remover foto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
