@@ -18,7 +18,7 @@ const navLinks = [
   { href: '/tracking', label: 'Tracking', icon: PackageSearch },
   { href: '/meus-envios', label: 'Envios', icon: Truck },
   { href: '/servicos', label: 'Serviços', icon: PackageCheck },
-  { href: '/shop', label: 'Shop', icon: ShoppingBag },
+  { href: '/shop', label: 'Personal Shopper', icon: ShoppingBag },
   { href: '/meus-pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/financeiro', label: 'Financeiro', icon: WalletCards },
   { href: '/perfil', label: 'Perfil', icon: User },

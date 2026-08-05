@@ -13,7 +13,7 @@ const navLinks = [
   { href: '/admin/itens', label: 'Itens', icon: List },
   { href: '/admin/envios', label: 'Envios', icon: Truck },
   { href: '/admin/operacional', label: 'Operacional', icon: PackageCheck },
-  { href: '/admin/shop', label: 'Shop', icon: ShoppingBag },
+  { href: '/admin/shop', label: 'Personal Shopper', icon: ShoppingBag },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/admin/financeiro', label: 'Financeiro', icon: WalletCards },
   { href: '/admin/funcionarios', label: 'Funcionários', icon: BriefcaseBusiness },

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Logo } from '@/components/Logo'
 import { ShopVitrine } from '@/components/cliente/ShopVitrine'
+import { PersonalShopperInfo } from '@/components/cliente/PersonalShopperInfo'
 
 export default async function ShopPage() {
   const session = await auth()
@@ -27,9 +28,10 @@ export default async function ShopPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>K-Mundo Shop</h1>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Escolha produtos e envie a solicitação de compra para sua suite.</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Personal Shopper 🇰🇷</h1>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Bem-vinda à nossa vitrine de produtos! Aqui você poderá solicitar e acompanhar seus pedidos de compra diretamente da Coreia do Sul.</p>
         </div>
+        <PersonalShopperInfo />
         <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
       </section>
     </main>
