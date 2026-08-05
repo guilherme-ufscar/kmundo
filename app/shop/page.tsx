@@ -33,8 +33,8 @@ export default async function ShopPage() {
           <p className="text-sm" style={{ color: '#6B7280' }}>Bem-vinda à nossa vitrine de produtos! Aqui você poderá solicitar e acompanhar seus pedidos de compra diretamente da Coreia do Sul.</p>
         </div>
         <PersonalShopperInfo />
-        <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
         <GuiaPedidoInfo />
+        <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
       </section>
     </main>
   )
