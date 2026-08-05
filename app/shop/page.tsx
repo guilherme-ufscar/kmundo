@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { Logo } from '@/components/Logo'
 import { ShopVitrine } from '@/components/cliente/ShopVitrine'
 import { PersonalShopperInfo } from '@/components/cliente/PersonalShopperInfo'
+import { GuiaPedidoInfo } from '@/components/cliente/GuiaPedidoInfo'
 
 export default async function ShopPage() {
   const session = await auth()
@@ -33,6 +34,7 @@ export default async function ShopPage() {
         </div>
         <PersonalShopperInfo />
         <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
+        <GuiaPedidoInfo />
       </section>
     </main>
   )
