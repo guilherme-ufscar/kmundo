@@ -21,19 +21,19 @@ export function CobrancasAdmin({ cobrancas }: { cobrancas: Cobranca[] }) {
   const router = useRouter()
   async function atualizar(id: string, body: object) {
     const res = await fetch(`/api/cobrancas/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    if (res.ok) { router.refresh(); toast.success('Cobranca atualizada') }
+    if (res.ok) { router.refresh(); toast.success('Cobrança atualizada') }
     else toast.error((await res.json()).error ?? 'Erro ao atualizar')
   }
   async function emitir(id: string) {
     const res = await fetch(`/api/cobrancas/${id}/emitir-nota`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo: 'NFSE' }) })
     if (res.ok) { router.refresh(); toast.success('Nota emitida e PDF salvo') }
-    else toast.error((await res.json()).error ?? 'Nao foi possivel emitir a nota')
+    else toast.error((await res.json()).error ?? 'Não foi possível emitir a nota')
   }
   async function apagarComprovante(id: string) {
     if (!confirm('Apagar este comprovante?')) return
     const res = await fetch(`/api/cobrancas/${id}/comprovante`, { method: 'DELETE' })
     if (res.ok) { router.refresh(); toast.success('Comprovante apagado') }
-    else toast.error((await res.json()).error ?? 'Nao foi possivel apagar o comprovante')
+    else toast.error((await res.json()).error ?? 'Não foi possível apagar o comprovante')
   }
   return (
     <div className="space-y-3">

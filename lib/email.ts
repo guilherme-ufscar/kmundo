@@ -420,3 +420,64 @@ export async function notificarAdminClienteConfirmou(params: {
     `),
   })
 }
+
+// ─── Caixa: cliente registrou → admin ─────────────────────────────────────────
+
+export async function notificarAdminNovaCaixa(params: {
+  nomeCliente: string
+  suite: number
+  tracking: string
+  lojaOrigem?: string | null
+  caixaId: string
+}) {
+  const { nomeCliente, suite, tracking, lojaOrigem } = params
+  await getResend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `📦 Nova caixa registrada — Tracking ${tracking}`,
+    html: layout(`
+      <h2 style="color:#1A1A2E;margin:0 0 16px;">Nova caixa registrada pelo cliente</h2>
+      <p style="color:#6B7280;margin:0 0 20px;">O cliente registrou uma nova encomenda. Ela deverá chegar ao armazém em breve — ao recebê-la, confirme o recebimento e adicione a foto da etiqueta.</p>
+      <div style="background:#F9FAFB;border-radius:12px;padding:20px;margin:0 0 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${infoRow('Cliente', nomeCliente)}
+          ${infoRow('Suite', `#${String(suite).padStart(3, '0')}`)}
+          ${infoRow('Tracking', `<span style="font-family:monospace;">${tracking}</span>`)}
+          ${lojaOrigem ? infoRow('Loja de origem', lojaOrigem) : ''}
+          ${infoRow('Status', badge('Aguardando chegada', '#F59E0B'))}
+        </table>
+      </div>
+      ${btnPink(`${BASE_URL}/admin/operacional`, 'Ver caixas no painel')}
+    `),
+  })
+}
+
+// ─── Caixa: confirmada no armazém → cliente ──────────────────────────────────
+
+export async function notificarClienteCaixaRecebida(params: {
+  emailCliente: string
+  nomeCliente: string
+  suite: number
+  tracking: string
+  caixaId: string
+}) {
+  const { emailCliente, nomeCliente, suite, tracking } = params
+  await getResend().emails.send({
+    from: FROM,
+    to: emailCliente,
+    subject: `✅ Sua encomenda chegou ao armazém — Tracking ${tracking}`,
+    html: layout(`
+      <p style="color:#6B7280;margin:0 0 4px;">Olá, <strong style="color:#1A1A2E;">${nomeCliente}</strong>!</p>
+      <h2 style="color:#1A1A2E;margin:8px 0 16px;">Sua caixa foi recebida no armazém</h2>
+      <div style="background:#F9FAFB;border-radius:12px;padding:20px;margin:0 0 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${infoRow('Suite', `#${String(suite).padStart(3, '0')}`)}
+          ${infoRow('Tracking', `<span style="font-family:monospace;">${tracking}</span>`)}
+          ${infoRow('Status', badge('Recebida no armazém', '#22C55E'))}
+        </table>
+      </div>
+      <p style="color:#6B7280;margin:0 0 24px;">Você já pode solicitar serviços (foto/vídeo da abertura, pesagem etc.) para esta caixa.</p>
+      ${btnPink(`${BASE_URL}/tracking`, 'Acompanhar minhas caixas')}
+    `),
+  })
+}

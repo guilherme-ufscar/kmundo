@@ -16,12 +16,12 @@ export default async function FinanceiroPage() {
     <div className="p-4 sm:p-8 max-w-5xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Financeiro</h1>
-        <p className="text-sm" style={{ color: '#6B7280' }}>Cobrancas, comprovantes, notas fiscais e servicos da sua suite.</p>
+        <p className="text-sm" style={{ color: '#6B7280' }}>Cobranças, comprovantes, notas fiscais e serviços da sua suite.</p>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
         <CobrancasCliente cobrancas={cobrancas.map(c => ({ ...c, criadoEm: c.criadoEm.toISOString() }))} />
         <aside className="bg-white border border-gray-100 rounded-lg p-4 h-fit">
-          <h2 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Servicos</h2>
+          <h2 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Serviços</h2>
           <div className="space-y-3">
             {servicos.map(servico => (
               <div key={servico.id} className="rounded-lg bg-gray-50 p-3 text-sm">

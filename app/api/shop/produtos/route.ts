@@ -16,7 +16,7 @@ const schema = z.object({
 
 export async function GET(req: NextRequest) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const { searchParams } = new URL(req.url)
   const apenasAtivos = session.user.role !== 'ADMIN' || searchParams.get('todos') !== '1'
   const produtos = await prisma.produtoShop.findMany({
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const parsed = schema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   return NextResponse.json(await prisma.produtoShop.create({ data: parsed.data }), { status: 201 })

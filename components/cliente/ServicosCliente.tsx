@@ -2,10 +2,20 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { PackagePlus, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
 type Caixa = { id: string; tracking: string; lojaOrigem: string | null }
-type Servico = { id: string; tipo: string; status: string; descricao: string | null; peso: number | null; largura: number | null; altura: number | null; comprimento: number | null; fotoUrls: string[]; videoUrl: string | null; caixa: { tracking: string } | null; criadoEm: Date | string }
+type Servico = { id: string; tipo: string; status: string; descricao: string | null; peso: number | null; largura: number | null; altura: number | null; comprimento: number | null; fotoUrls: string[]; videoUrl: string | null; observacoesEquipe: string | null; caixa: { tracking: string } | null; criadoEm: Date | string }
+
+type Precos = {
+  UNBOXING: number
+  FOTO_VIDEO: number
+  MEDICAO: number
+  REEMBALAGEM: number
+  OUTRO: number
+  moeda: string
+}
 
 const tipos = [
   ['UNBOXING', 'Unboxing'],
@@ -13,14 +23,78 @@ const tipos = [
   ['MEDICAO', 'Peso e tamanho'],
   ['REEMBALAGEM', 'Reembalagem'],
   ['OUTRO', 'Outro'],
-]
+] as const
 
-export function ServicosCliente({ caixas, servicos }: { caixas: Caixa[]; servicos: Servico[] }) {
+type TipoServico = (typeof tipos)[number][0]
+
+export function ServicosCliente({ caixas, servicos, precos }: { caixas: Caixa[]; servicos: Servico[]; precos: Precos }) {
   const router = useRouter()
   const [caixaId, setCaixaId] = useState(caixas[0]?.id ?? '')
   const [tipo, setTipo] = useState('UNBOXING')
   const [descricao, setDescricao] = useState('')
   const [salvando, setSalvando] = useState(false)
+
+  const [mostrarNovaCaixa, setMostrarNovaCaixa] = useState(false)
+  const [novaCaixa, setNovaCaixa] = useState({ tracking: '', lojaOrigem: '', observacoes: '' })
+  const [comprovante, setComprovante] = useState<File | null>(null)
+  const [etiqueta, setEtiqueta] = useState<File | null>(null)
+  const [salvandoCaixa, setSalvandoCaixa] = useState(false)
+
+  const precoAtual = precos[tipo as TipoServico]
+
+  function formatarPreco(valor: number) {
+    if (valor <= 0) return 'consultar'
+    return `${valor.toFixed(2)} ${precos.moeda}`
+  }
+
+  async function registrarCaixa() {
+    if (novaCaixa.tracking.trim().length < 3) return toast.error('Informe o número de rastreamento')
+    if (!comprovante) return toast.error('Envie o comprovante da compra')
+    setSalvandoCaixa(true)
+    try {
+      const data = new FormData()
+      data.append('files', comprovante)
+      const up = await fetch('/api/uploads/operacional', { method: 'POST', body: data })
+      if (!up.ok) throw new Error((await up.json()).error ?? 'Falha no upload do comprovante')
+      const { urls: urlsComprovante } = await up.json() as { urls: string[] }
+      const comprovanteCompraUrl = urlsComprovante[0]
+
+      let fotoEtiquetaUrl: string | undefined
+      if (etiqueta) {
+        const etiquetaData = new FormData()
+        etiquetaData.append('files', etiqueta)
+        const et = await fetch('/api/uploads/operacional', { method: 'POST', body: etiquetaData })
+        if (!et.ok) throw new Error((await et.json()).error ?? 'Falha no upload da etiqueta')
+        const etUrls = await et.json() as { urls: string[] }
+        fotoEtiquetaUrl = etUrls.urls[0]
+      }
+
+      const res = await fetch('/api/caixas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tracking: novaCaixa.tracking.trim(),
+          lojaOrigem: novaCaixa.lojaOrigem.trim() || undefined,
+          observacoes: novaCaixa.observacoes.trim() || undefined,
+          comprovanteCompraUrl,
+          fotoEtiquetaUrl,
+        }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Não foi possível registrar')
+      const caixaCriada = await res.json() as { id: string }
+      toast.success(fotoEtiquetaUrl ? 'Caixa registrada e recebimento confirmado' : 'Caixa registrada! A equipe será avisada.')
+      setNovaCaixa({ tracking: '', lojaOrigem: '', observacoes: '' })
+      setComprovante(null)
+      setEtiqueta(null)
+      setMostrarNovaCaixa(false)
+      setCaixaId(caixaCriada.id)
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao registrar')
+    } finally {
+      setSalvandoCaixa(false)
+    }
+  }
 
   async function solicitar() {
     setSalvando(true)
@@ -31,27 +105,75 @@ export function ServicosCliente({ caixas, servicos }: { caixas: Caixa[]; servico
     })
     setSalvando(false)
     if (res.ok) {
-      toast.success('Servico solicitado')
+      toast.success('Serviço solicitado')
       setDescricao('')
       router.refresh()
-    } else toast.error((await res.json()).error ?? 'Nao foi possivel solicitar')
+    } else toast.error((await res.json()).error ?? 'Não foi possível solicitar')
   }
 
   return (
     <div className="space-y-6">
       <div className="bg-white border border-gray-100 rounded-lg p-5">
-        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Solicitar servico</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold" style={{ color: '#1A1A2E' }}>Solicitar serviço</h2>
+          <button
+            type="button"
+            onClick={() => setMostrarNovaCaixa(v => !v)}
+            className="flex items-center gap-1.5 h-9 rounded-lg px-3 text-xs font-semibold"
+            style={{ background: '#FFF1F5', color: '#FF6B9D' }}
+          >
+            <PackagePlus className="w-3.5 h-3.5" />
+            {mostrarNovaCaixa ? 'Fechar' : 'Registrar nova caixa'}
+          </button>
+        </div>
+
+        {mostrarNovaCaixa && (
+          <div className="mb-5 rounded-lg border border-dashed border-gray-300 p-4">
+            <p className="text-xs mb-3" style={{ color: '#6B7280' }}>Após realizar uma compra, registre o rastreamento para vincular o serviço. Se já tiver a foto da etiqueta, envie para confirmar o recebimento na hora.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input value={novaCaixa.tracking} onChange={e => setNovaCaixa(f => ({ ...f, tracking: e.target.value }))} placeholder="Tracking" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
+              <input value={novaCaixa.lojaOrigem} onChange={e => setNovaCaixa(f => ({ ...f, lojaOrigem: e.target.value }))} placeholder="Loja de origem" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
+              <input value={novaCaixa.observacoes} onChange={e => setNovaCaixa(f => ({ ...f, observacoes: e.target.value }))} placeholder="Observações (opcional)" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
+              <label className="h-10 rounded-lg border border-dashed border-gray-300 px-3 text-sm flex items-center gap-2 cursor-pointer">
+                <Upload className="w-4 h-4" /> {comprovante ? comprovante.name : 'Comprovante da compra *'}
+                <input type="file" className="hidden" accept="image/*,application/pdf" onChange={e => setComprovante(e.target.files?.[0] ?? null)} />
+              </label>
+              <label className="h-10 rounded-lg border border-dashed border-gray-300 px-3 text-sm flex items-center gap-2 cursor-pointer">
+                <Upload className="w-4 h-4" /> {etiqueta ? etiqueta.name : 'Foto da etiqueta (opcional)'}
+                <input type="file" className="hidden" accept="image/*" onChange={e => setEtiqueta(e.target.files?.[0] ?? null)} />
+              </label>
+            </div>
+            <button type="button" onClick={registrarCaixa} disabled={salvandoCaixa} className="mt-3 h-10 rounded-lg px-4 text-sm font-semibold text-white" style={{ background: '#FF6B9D' }}>
+              {salvandoCaixa ? 'Registrando...' : 'Registrar caixa'}
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <select value={caixaId} onChange={e => setCaixaId(e.target.value)} className="h-10 rounded-lg border border-gray-200 px-3 text-sm">
-            <option value="">Sem caixa vinculada</option>
-            {caixas.map(caixa => <option key={caixa.id} value={caixa.id}>{caixa.tracking}{caixa.lojaOrigem ? ` - ${caixa.lojaOrigem}` : ''}</option>)}
-          </select>
+          <div>
+            <select value={caixaId} onChange={e => setCaixaId(e.target.value)} className="h-10 rounded-lg border border-gray-200 px-3 text-sm w-full">
+              <option value="">Sem caixa vinculada</option>
+              {caixas.map(caixa => <option key={caixa.id} value={caixa.id}>{caixa.tracking}{caixa.lojaOrigem ? ` - ${caixa.lojaOrigem}` : ''}</option>)}
+            </select>
+            {caixas.length === 0 && !mostrarNovaCaixa && (
+              <p className="text-xs mt-1.5" style={{ color: '#9CA3AF' }}>Nenhuma caixa registrada. Use “Registrar nova caixa” acima.</p>
+            )}
+          </div>
           <select value={tipo} onChange={e => setTipo(e.target.value)} className="h-10 rounded-lg border border-gray-200 px-3 text-sm">
-            {tipos.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            {tipos.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label} — {formatarPreco(precos[value])}
+              </option>
+            ))}
           </select>
           <textarea value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Detalhes do que precisa" className="md:col-span-2 min-h-20 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
         </div>
-        <button type="button" onClick={solicitar} disabled={salvando} className="mt-4 h-10 rounded-lg px-4 text-sm font-semibold text-white" style={{ background: '#FF6B9D' }}>{salvando ? 'Enviando...' : 'Solicitar servico'}</button>
+        <p className="text-xs mt-3" style={{ color: '#9CA3AF' }}>
+          {precoAtual > 0
+            ? `O valor de ${tipos.find(([v]) => v === tipo)?.[1]} é ${formatarPreco(precoAtual)}. O pagamento é combinado com a equipe após o serviço ser realizado.`
+            : 'Valores combinados com a equipe após a solicitação.'}
+        </p>
+        <button type="button" onClick={solicitar} disabled={salvando} className="mt-3 h-10 rounded-lg px-4 text-sm font-semibold text-white" style={{ background: '#FF6B9D' }}>{salvando ? 'Enviando...' : 'Solicitar serviço'}</button>
       </div>
 
       <div className="space-y-3">
@@ -63,11 +185,12 @@ export function ServicosCliente({ caixas, servicos }: { caixas: Caixa[]; servico
             </div>
             <span className="rounded bg-gray-100 px-2 py-1 text-xs">{servico.status.replaceAll('_', ' ')}</span>
           </div>
+          {servico.observacoesEquipe && <p className="text-xs mt-2 rounded bg-gray-50 px-2 py-1" style={{ color: '#6B7280' }}>{servico.observacoesEquipe}</p>}
           {(servico.peso || servico.largura || servico.videoUrl || servico.fotoUrls.length > 0) && <div className="mt-3 text-sm" style={{ color: '#374151' }}>
             {servico.peso && <p>Peso: {servico.peso} kg</p>}
             {servico.largura && servico.altura && servico.comprimento && <p>Tamanho: {servico.largura} x {servico.altura} x {servico.comprimento} cm</p>}
             <div className="mt-2 flex flex-wrap gap-2">
-              {servico.videoUrl && <a href={servico.videoUrl} target="_blank" className="rounded bg-gray-100 px-2 py-1 text-xs">Video</a>}
+              {servico.videoUrl && <a href={servico.videoUrl} target="_blank" className="rounded bg-gray-100 px-2 py-1 text-xs">Vídeo</a>}
               {servico.fotoUrls.map((url, idx) => <a key={url} href={url} target="_blank" className="rounded bg-gray-100 px-2 py-1 text-xs">Foto {idx + 1}</a>)}
             </div>
           </div>}

@@ -22,12 +22,12 @@ export default async function FinanceiroAdminPage() {
     <div className="p-4 sm:p-8 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Financeiro</h1>
-        <p className="text-sm" style={{ color: '#6B7280' }}>Pagamentos, comprovantes, servicos e notas fiscais por suite.</p>
+        <p className="text-sm" style={{ color: '#6B7280' }}>Pagamentos, comprovantes, serviços e notas fiscais por suite.</p>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
         <CobrancasAdmin cobrancas={cobrancas} />
         <aside className="bg-white border border-gray-100 rounded-lg p-4 h-fit">
-          <h2 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Servicos solicitados</h2>
+          <h2 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Serviços solicitados</h2>
           <div className="space-y-3">
             {servicos.map(servico => (
               <div key={servico.id} className="rounded-lg bg-gray-50 p-3 text-sm">

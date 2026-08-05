@@ -12,7 +12,7 @@ export default async function AdminShopPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>K-Mundo Shop</h1>
-        <p className="text-sm" style={{ color: '#6B7280' }}>Vitrine de produtos e solicitacoes integradas aos pedidos de compra.</p>
+        <p className="text-sm" style={{ color: '#6B7280' }}>Vitrine de produtos e solicitações integradas aos pedidos de compra.</p>
       </div>
       <ShopAdmin produtos={produtos} />
     </div>

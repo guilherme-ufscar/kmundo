@@ -19,6 +19,11 @@ interface Configuracao {
   chavePix: string | null
   qrCodePix: string | null
   instrucoesPix: string | null
+  precoUnboxing: number
+  precoFotoVideo: number
+  precoMedicao: number
+  precoReembalagem: number
+  precoOutro: number
 }
 
 interface Props {
@@ -39,6 +44,11 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
     diasGratuitos: String(config.diasGratuitos),
     taxaDiariaArmazem: String(config.taxaDiariaArmazem),
     moedaTaxa: config.moedaTaxa,
+    precoUnboxing: String(config.precoUnboxing ?? 0),
+    precoFotoVideo: String(config.precoFotoVideo ?? 0),
+    precoMedicao: String(config.precoMedicao ?? 0),
+    precoReembalagem: String(config.precoReembalagem ?? 0),
+    precoOutro: String(config.precoOutro ?? 0),
   })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -62,6 +72,11 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
           diasGratuitos: parseInt(form.diasGratuitos),
           taxaDiariaArmazem: parseFloat(form.taxaDiariaArmazem),
           moedaTaxa: form.moedaTaxa,
+          precoUnboxing: parseFloat(form.precoUnboxing),
+          precoFotoVideo: parseFloat(form.precoFotoVideo),
+          precoMedicao: parseFloat(form.precoMedicao),
+          precoReembalagem: parseFloat(form.precoReembalagem),
+          precoOutro: parseFloat(form.precoOutro),
         }),
       })
       if (res.ok) {
@@ -219,6 +234,78 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
               <option value="BRL">BRL</option>
               <option value="EUR">EUR</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Preços dos serviços</h2>
+        <p className="text-sm mb-4" style={{ color: '#9CA3AF' }}>Valores exibidos ao cliente na solicitação de serviços (na moeda acima).</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Unboxing</Label>
+            <Input
+              name="precoUnboxing"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precoUnboxing}
+              onChange={handleChange}
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Foto / Vídeo</Label>
+            <Input
+              name="precoFotoVideo"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precoFotoVideo}
+              onChange={handleChange}
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Peso e tamanho</Label>
+            <Input
+              name="precoMedicao"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precoMedicao}
+              onChange={handleChange}
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Reembalagem</Label>
+            <Input
+              name="precoReembalagem"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precoReembalagem}
+              onChange={handleChange}
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Outro</Label>
+            <Input
+              name="precoOutro"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precoOutro}
+              onChange={handleChange}
+              className="h-11 mt-1.5"
+              style={{ borderRadius: '8px' }}
+            />
           </div>
         </div>
       </div>

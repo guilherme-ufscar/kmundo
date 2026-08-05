@@ -21,7 +21,7 @@ export function extensionForMime(type: string) {
 export async function saveUpload(file: File, folder: string, maxBytes = 50 * 1024 * 1024) {
   if (file.size <= 0 || file.size > maxBytes) throw new Error(`Arquivo invalido ou maior que ${Math.round(maxBytes / 1024 / 1024)} MB`)
   const ext = extensionForMime(file.type)
-  if (!ext) throw new Error('Tipo de arquivo nao permitido')
+  if (!ext) throw new Error('Tipo de arquivo não permitido')
   const safeFolder = folder.split('/').filter(Boolean).join(path.sep)
   const dir = path.join(uploadDir, safeFolder)
   await mkdir(dir, { recursive: true })

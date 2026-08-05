@@ -61,7 +61,7 @@ export default async function AdminClientesPage({
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1A1A2E' }}>Clientes</h1>
-          <p style={{ color: '#6B7280' }}>{total} clientes encontradas</p>
+          <p style={{ color: '#6B7280' }}>{total} clientes encontrados</p>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export default async function AdminClientesPage({
         {clientes.length === 0 ? (
           <div className="p-8 sm:p-16 text-center">
             <Users className="w-16 h-16 mx-auto mb-4" style={{ color: '#E5E7EB' }} />
-            <p className="font-semibold text-lg" style={{ color: '#6B7280' }}>Nenhuma cliente encontrada</p>
+            <p className="font-semibold text-lg" style={{ color: '#6B7280' }}>Nenhum cliente encontrado</p>
           </div>
         ) : (
           <>

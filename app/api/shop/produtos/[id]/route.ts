@@ -16,7 +16,7 @@ const schema = z.object({
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
-  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const parsed = schema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   return NextResponse.json(await prisma.produtoShop.update({ where: { id: params.id }, data: parsed.data }))
@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
-  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-  await prisma.produtoShop.update({ where: { id: params.id }, data: { ativo: false } })
+  if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  await prisma.produtoShop.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
 }

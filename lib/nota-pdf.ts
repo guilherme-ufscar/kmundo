@@ -61,7 +61,7 @@ export async function salvarPdfNota(input: NotaPdfInput) {
     `Cliente: ${input.clienteNome}`,
     `Suite: #${String(input.suite).padStart(3, '0')}`,
     `Documento: ${input.documento}`,
-    `Servico: ${input.descricao}`,
+    `Serviço: ${input.descricao}`,
     `Valor: ${input.moeda} ${input.valor.toFixed(2)}`,
     'Documento vinculado ao historico financeiro da suite.',
   ])

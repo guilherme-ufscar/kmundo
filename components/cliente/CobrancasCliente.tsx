@@ -32,10 +32,10 @@ export function CobrancasCliente({ cobrancas }: { cobrancas: CobrancaCliente[] }
     const res = await fetch(`/api/cobrancas/${id}/comprovante`, { method: 'POST', body: form })
     setEnviando(null)
     if (res.ok) {
-      toast.success('Comprovante enviado para validacao')
+      toast.success('Comprovante enviado para validação')
       router.refresh()
     } else {
-      toast.error((await res.json()).error ?? 'Nao foi possivel enviar o comprovante')
+      toast.error((await res.json()).error ?? 'Não foi possível enviar o comprovante')
     }
   }
 
@@ -48,7 +48,7 @@ export function CobrancasCliente({ cobrancas }: { cobrancas: CobrancaCliente[] }
       toast.success('Comprovante apagado')
       router.refresh()
     } else {
-      toast.error((await res.json()).error ?? 'Nao foi possivel apagar o comprovante')
+      toast.error((await res.json()).error ?? 'Não foi possível apagar o comprovante')
     }
   }
 

@@ -38,15 +38,15 @@ export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Prod
     })
     setLoading(null)
     if (res.ok) {
-      toast.success('Solicitacao enviada para a equipe')
+      toast.success('Solicitação enviada para a equipe')
       router.push('/meus-pedidos')
     } else {
-      toast.error((await res.json()).error ?? 'Nao foi possivel solicitar')
+      toast.error((await res.json()).error ?? 'Não foi possível solicitar')
     }
   }
 
   if (produtos.length === 0) {
-    return <div className="rounded-lg bg-white p-10 text-center text-sm text-gray-500 border border-gray-100">Nenhum produto disponivel no momento.</div>
+    return <div className="rounded-lg bg-white p-10 text-center text-sm text-gray-500 border border-gray-100">Nenhum produto disponível no momento.</div>
   }
 
   return (
@@ -72,7 +72,7 @@ export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Prod
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold" style={{ color: '#FF6B9D' }}>
-                  {produto.precoEstimado != null ? `${produto.moeda} ${produto.precoEstimado.toFixed(2)}` : 'Sob cotacao'}
+                  {produto.precoEstimado != null ? `${produto.moeda} ${produto.precoEstimado.toFixed(2)}` : 'Sob cotação'}
                 </span>
                 <div className="flex items-center gap-1 rounded-lg border border-gray-200 p-1">
                   <button type="button" onClick={() => setQuantidades(q => ({ ...q, [produto.id]: Math.max(1, quantidade - 1) }))} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100" aria-label="Diminuir quantidade">
@@ -84,7 +84,7 @@ export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Prod
                   </button>
                 </div>
               </div>
-              <input value={variacoes[produto.id] ?? ''} onChange={(e) => setVariacoes(v => ({ ...v, [produto.id]: e.target.value }))} placeholder="Variacao, cor ou tamanho" className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm" />
+              <input value={variacoes[produto.id] ?? ''} onChange={(e) => setVariacoes(v => ({ ...v, [produto.id]: e.target.value }))} placeholder="Variação, cor ou tamanho" className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm" />
               <button type="button" onClick={() => solicitar(produto)} disabled={loading === produto.id} className="w-full h-10 rounded-lg text-sm font-semibold text-white" style={{ background: '#FF6B9D' }}>
                 {loading === produto.id ? 'Enviando...' : 'Solicitar compra'}
               </button>

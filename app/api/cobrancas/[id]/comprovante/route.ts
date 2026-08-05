@@ -30,15 +30,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const cobranca = await prisma.cobranca.findUnique({ where: { id: params.id }, include: { notaFiscal: true } })
-  if (!cobranca) return NextResponse.json({ error: 'Cobranca nao encontrada' }, { status: 404 })
+  if (!cobranca) return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
 
   const cliente = session.user.role === 'CLIENTE' ? await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) }) : null
-  if (cliente && cobranca.clienteId !== cliente.id) return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 })
+  if (cliente && cobranca.clienteId !== cliente.id) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   if (session.user.role === 'CLIENTE' && (cobranca.status === 'PAGO' || cobranca.notaFiscal?.status === 'EMITIDA')) {
-    return NextResponse.json({ error: 'Comprovante ja confirmado nao pode ser apagado pela cliente' }, { status: 422 })
+    return NextResponse.json({ error: 'Comprovante já confirmado não pode ser apagado pela cliente' }, { status: 422 })
   }
   if (!cobranca.comprovanteUrl) return NextResponse.json({ ok: true })
 

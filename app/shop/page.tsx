@@ -28,7 +28,7 @@ export default async function ShopPage() {
       <section className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>K-Mundo Shop</h1>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Escolha produtos e envie a solicitacao de compra para sua suite.</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Escolha produtos e envie a solicitação de compra para sua suite.</p>
         </div>
         <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
       </section>

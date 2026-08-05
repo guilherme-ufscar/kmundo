@@ -183,7 +183,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
         toast.success('Foto removida')
         router.refresh()
       } else {
-        toast.error((await res.json()).error ?? 'Nao foi possivel remover a foto')
+        toast.error((await res.json()).error ?? 'Não foi possível remover a foto')
       }
     } catch {
       toast.error('Erro de conexao')
@@ -358,7 +358,7 @@ export function EnvioAdminForm({ envio, fotos }: Props) {
               </div>
               {envio.metodoEnvio !== 'ENVIO_EM_GRUPO' && (
                 <div>
-                  <Label className="text-xs" style={{ color: '#374151' }}>Declaracao de conteudo *</Label>
+                  <Label className="text-xs" style={{ color: '#374151' }}>Declaração de conteúdo *</Label>
                   <textarea
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     rows={3}

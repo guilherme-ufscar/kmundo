@@ -103,6 +103,11 @@ model Configuracao {
   diasGratuitos     Int       @default(30)
   taxaDiariaArmazem Float     @default(0)
   moedaTaxa         String    @default("USD")
+  precoUnboxing     Float     @default(0)
+  precoFotoVideo    Float     @default(0)
+  precoMedicao      Float     @default(0)
+  precoReembalagem  Float     @default(0)
+  precoOutro        Float     @default(0)
   nomeEmpresa       String    @default("KMundo Warehouse")
   emailContato      String?
   whatsappRecepcao  String?
@@ -162,16 +167,18 @@ model CaixaRecebida {
   tracking             String
   lojaOrigem           String?
   comprovanteCompraUrl String
-  fotoEtiquetaUrl      String
+  fotoEtiquetaUrl      String?
   observacoes          String?              @db.Text
-  recebidoEm           DateTime             @default(now())
+  status               StatusCaixa          @default(PENDENTE)
+  recebidoEm           DateTime?
   criadoEm             DateTime             @default(now())
   atualizadoEm         DateTime             @updatedAt
   solicitacoes         SolicitacaoServico[]
 
   @@unique([clienteId, tracking])
+  @@index([status])
   @@index([tracking])
-  @@index([clienteId, recebidoEm(sort: Desc)])
+  @@index([clienteId, criadoEm(sort: Desc)])
   @@map("caixas_recebidas")
 }
 
@@ -184,6 +191,7 @@ model SolicitacaoServico {
   tipo         TipoServico
   status       StatusServico  @default(SOLICITADO)
   descricao    String?        @db.Text
+  observacoesEquipe String?   @db.Text
   fotoUrls     String[]       @default([])
   videoUrl     String?
   peso         Float?
@@ -430,6 +438,11 @@ enum TipoServico {
   MEDICAO
   REEMBALAGEM
   OUTRO
+}
+
+enum StatusCaixa {
+  PENDENTE
+  RECEBIDA
 }
 
 enum StatusServico {
