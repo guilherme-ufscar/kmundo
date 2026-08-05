@@ -39,9 +39,12 @@ export function GuiaPedidoInfo() {
       <div className="px-6 sm:px-8 pb-6 sm:pb-8">
         {!aberto ? (
           <div className="space-y-3">
-            <p className="text-sm line-clamp-3" style={{ color: '#6B7280' }}>
-              Após solicitar um produto pelo serviço de Personal Shopper, sua solicitação ficará disponível na aba Pedidos, onde você poderá acompanhar todas as atualizações do processo. Sempre consulte essa área para verificar o andamento da sua compra.
-            </p>
+            <div className="relative">
+              <p className="text-sm leading-relaxed line-clamp-3" style={{ color: '#6B7280' }}>
+                Após solicitar um produto pelo serviço de Personal Shopper, sua solicitação ficará disponível na aba Pedidos, onde você poderá acompanhar todas as atualizações do processo. Sempre consulte essa área para verificar o andamento da sua compra.
+              </p>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white to-transparent" />
+            </div>
             <p className="text-sm font-semibold" style={{ color: '#FF6B9D' }}>Clique para ver o guia completo</p>
           </div>
         ) : (

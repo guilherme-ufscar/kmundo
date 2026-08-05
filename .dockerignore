@@ -7,3 +7,8 @@ node_modules
 docker/postgres/backup
 npm-debug.log*
 README.md
+uploads
+backups
+backup.sql
+*.dump
+*.tar.gz

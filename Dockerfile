@@ -4,7 +4,7 @@ RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+RUN --mount=type=cache,target=/root/.npm npm ci --legacy-peer-deps
 
 # ── Dev stage (sem build, código montado via volume) ──────────────────────────
 FROM deps AS dev
@@ -21,7 +21,7 @@ ENV NODE_ENV=production
 COPY prisma ./prisma
 RUN npx prisma generate
 COPY . .
-RUN npm run build
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
