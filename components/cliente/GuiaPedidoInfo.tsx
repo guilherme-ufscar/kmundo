@@ -40,8 +40,8 @@ export function GuiaPedidoInfo() {
         {!aberto ? (
           <div className="space-y-3">
             <div className="relative">
-              <p className="text-sm leading-relaxed line-clamp-3" style={{ color: '#6B7280' }}>
-                Após solicitar um produto pelo serviço de Personal Shopper, sua solicitação ficará disponível na aba Pedidos, onde você poderá acompanhar todas as atualizações do processo. Sempre consulte essa área para verificar o andamento da sua compra.
+              <p className="text-sm leading-relaxed line-clamp-6" style={{ color: '#6B7280' }}>
+                Após solicitar um produto pelo serviço de Personal Shopper, sua solicitação ficará disponível na aba Pedidos, onde você poderá acompanhar todas as atualizações do processo. Sempre consulte essa área para verificar o andamento da sua compra. 🔎 Em revisão: analisamos sua solicitação e confirmamos a disponibilidade do item, valores e loja de compra. 💳 Aguardando pagamento: enviamos as informações de pagamento para finalizar a compra. 🛒 Comprado: compra realizada, aguardando a chegada do item ao armazém na Coreia do Sul.
               </p>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white to-transparent" />
             </div>

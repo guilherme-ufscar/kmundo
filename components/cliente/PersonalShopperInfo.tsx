@@ -70,7 +70,9 @@ export function PersonalShopperInfo() {
         {!aberto ? (
           <div className="space-y-3">
             <div className="relative">
-              <p className="text-sm leading-relaxed line-clamp-3" style={{ color: '#6B7280' }}>{paragrafos[0]}</p>
+              <p className="text-sm leading-relaxed line-clamp-6" style={{ color: '#6B7280' }}>
+                {paragrafos[0]} {paragrafos[1]}
+              </p>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white to-transparent" />
             </div>
             <p className="text-sm font-semibold" style={{ color: '#FF6B9D' }}>Clique para saber mais</p>
