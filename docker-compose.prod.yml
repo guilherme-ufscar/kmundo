@@ -23,6 +23,7 @@ services:
       - BLING_SERVICO_CODIGO=${BLING_SERVICO_CODIGO}
       - UPLOAD_DIR=/app/uploads
       - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
     depends_on:
       postgres:
         condition: service_healthy
