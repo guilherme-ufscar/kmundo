@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { criarPedidoCompraSchema } from '@/lib/validations/pedido-compra'
 
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
 
     if (!cliente) {
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session.user.id } },
+    where: clienteWhereFromSession(session.user),
   })
 
   if (!cliente) {

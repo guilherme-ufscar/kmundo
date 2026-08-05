@@ -26,7 +26,7 @@ const statusColors: Record<string, string> = {
 
 export default async function DashboardPage() {
   const session = await auth()
-  const data = await getClienteDashboard(session!.user!.id)
+  const data = await getClienteDashboard(session!.user!)
 
   if (!data) return null
 

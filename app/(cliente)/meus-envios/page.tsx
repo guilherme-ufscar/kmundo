@@ -29,7 +29,7 @@ const metodoLabel: Record<string, string> = {
 
 export default async function MeusEnviosPage() {
   const session = await auth()
-  const data = await getClienteEnvios(session!.user!.id)
+  const data = await getClienteEnvios(session!.user!)
 
   if (!data) return null
 

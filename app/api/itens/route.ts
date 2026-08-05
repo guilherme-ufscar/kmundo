@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { itemSchema } from '@/lib/validations/item'
 import { notificarClienteNovoItem, notificarAdminNovoItem } from '@/lib/email'
 
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
     if (!cliente) return NextResponse.json({ itens: [], total: 0 })
     where['clienteId'] = cliente.id

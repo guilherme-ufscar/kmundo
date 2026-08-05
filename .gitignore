@@ -28,6 +28,8 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+/uploads/
+/backups/
 
 # SSL
 docker/nginx/ssl/*.pem

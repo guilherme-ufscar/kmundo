@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 import { notificarClienteStatusEnvio, notificarAdminClienteConfirmou, notificarClienteFretePago } from '@/lib/email'
+import { unlink } from 'fs/promises'
+import path from 'path'
+
+const uploadDir = process.env.UPLOAD_DIR ?? '/app/uploads'
+
+async function apagarUploadSeguro(url: string) {
+  if (!url.startsWith('/uploads/')) return
+  const relativePath = url.replace(/^\/uploads\//, '')
+  const fullPath = path.resolve(uploadDir, relativePath)
+  const base = path.resolve(uploadDir)
+  if (fullPath.startsWith(base)) await unlink(fullPath).catch(() => undefined)
+}
 
 const patchAdminSchema = z.object({
   status: z.enum(['AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'EMBALANDO', 'PAGO', 'ENVIADO', 'ENTREGUE']).optional(),
@@ -12,10 +25,11 @@ const patchAdminSchema = z.object({
   comprimento: z.number().positive().optional(),
   valorDeclarado: z.number().positive().optional(),
   moeda: z.string().optional(),
-  valorFrete: z.number().min(0).optional(),
+  valorFrete: z.number().min(0).nullable().optional(),
   moedaFrete: z.string().optional(),
   fotos: z.array(z.string()).optional(),
   videoUrl: z.string().optional(),
+  declaracaoConteudo: z.string().min(3).optional(),
   trackingEnvio: z.string().optional(),
   dataLimitePagamento: z.string().datetime().optional(),
   observacoes: z.string().optional(),
@@ -53,7 +67,7 @@ export async function GET(
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
     if (!cliente || envio.clienteId !== cliente.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
@@ -111,6 +125,10 @@ export async function PATCH(
     if (parsed.data.dataLimitePagamento) {
       data.dataLimitePagamento = new Date(parsed.data.dataLimitePagamento)
     }
+    if (parsed.data.fotos) {
+      const removidas = envio.fotos.filter((foto) => !parsed.data.fotos?.includes(foto))
+      await Promise.all(removidas.map(apagarUploadSeguro))
+    }
 
     const atualizado = await prisma.envio.update({
       where: { id: params.id },
@@ -120,6 +138,30 @@ export async function PATCH(
         cliente: { include: { usuario: { select: { email: true } } } },
       },
     })
+
+    if (typeof parsed.data.valorFrete === 'number' && parsed.data.valorFrete > 0) {
+      const config = await prisma.configuracao.findFirst()
+      const descricao = `Frete ${atualizado.metodoEnvio} | Suite #${atualizado.cliente.numeroDeSuite}`
+      const cobranca = await prisma.cobranca.findFirst({ where: { envioId: atualizado.id } })
+      const cobrancaData = {
+        clienteId: atualizado.clienteId,
+        envioId: atualizado.id,
+        descricao,
+        valor: parsed.data.valorFrete,
+        moeda: parsed.data.moedaFrete ?? atualizado.moedaFrete ?? 'BRL',
+        chavePix: config?.chavePix ?? null,
+        copiaEColaPix: config?.instrucoesPix ?? config?.chavePix ?? null,
+        status: parsed.data.fretePago ? 'PAGO' as const : cobranca?.status ?? 'PENDENTE' as const,
+        ...(parsed.data.fretePago ? { pagoEm: new Date(), confirmadoEm: new Date() } : {}),
+      }
+      if (cobranca) await prisma.cobranca.update({ where: { id: cobranca.id }, data: cobrancaData })
+      else await prisma.cobranca.create({ data: cobrancaData })
+      await prisma.eventoEnvio.create({ data: { envioId: atualizado.id, titulo: 'Cobranca de frete atualizada', descricao: `${cobrancaData.moeda} ${cobrancaData.valor.toFixed(2)}` } })
+    }
+
+    if (parsed.data.status && parsed.data.status !== envio.status) {
+      await prisma.eventoEnvio.create({ data: { envioId: envio.id, titulo: 'Status atualizado', descricao: `Status alterado para ${parsed.data.status}` } })
+    }
 
     // Notificar cliente se frete foi marcado como pago
     if (parsed.data.fretePago === true && !envio.fretePago) {
@@ -152,7 +194,7 @@ export async function PATCH(
 
   // Cliente só pode confirmar
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session.user.id } },
+    where: clienteWhereFromSession(session.user),
     include: { usuario: { select: { email: true } } },
   })
   if (!cliente || envio.clienteId !== cliente.id) {
@@ -168,6 +210,8 @@ export async function PATCH(
     where: { id: params.id },
     data: { confirmadoCliente: true },
   })
+
+  await prisma.eventoEnvio.create({ data: { envioId: envio.id, titulo: 'Cliente confirmou o envio' } })
 
   notificarAdminClienteConfirmou({
     nomeCliente: cliente.nomeCompleto,

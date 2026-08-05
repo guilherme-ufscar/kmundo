@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { z } from 'zod'
 import { notificarAdminNovoEnvio, notificarClienteEnvioSolicitado } from '@/lib/email'
 
@@ -8,6 +9,7 @@ const criarEnvioSchema = z.object({
   metodoEnvio: z.enum(['FEDEX', 'EMS', 'ENVIO_EM_GRUPO']),
   itemIds: z.array(z.string()).min(1, 'Selecione ao menos um item'),
   valorDeclarado: z.number().positive().optional(),
+  declaracaoConteudo: z.string().min(3).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -17,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session.user.id } },
+    where: clienteWhereFromSession(session.user),
   })
   if (!cliente) {
     return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
@@ -29,7 +31,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { metodoEnvio, itemIds, valorDeclarado } = parsed.data
+  const { metodoEnvio, itemIds, valorDeclarado, declaracaoConteudo } = parsed.data
+  if (metodoEnvio !== 'ENVIO_EM_GRUPO' && !declaracaoConteudo) {
+    return NextResponse.json({ error: 'A declaração de conteúdo é obrigatória para FedEx e EMS' }, { status: 400 })
+  }
 
   // Verificar que os itens pertencem ao cliente
   const itens = await prisma.item.findMany({
@@ -44,6 +49,7 @@ export async function POST(req: NextRequest) {
       clienteId: cliente.id,
       metodoEnvio,
       valorDeclarado,
+      declaracaoConteudo,
       itens: {
         create: itemIds.map((itemId) => ({ itemId })),
       },
@@ -81,7 +87,7 @@ export async function GET(req: NextRequest) {
 
   if (session.user.role === 'CLIENTE') {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: session.user.id } },
+      where: clienteWhereFromSession(session.user),
     })
     if (!cliente) return NextResponse.json([])
     where['clienteId'] = cliente.id

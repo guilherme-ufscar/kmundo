@@ -1,36 +1,39 @@
 import { unstable_cache } from 'next/cache'
 import { prisma } from './prisma'
+import { clienteWhereFromSession } from './cliente-session'
+
+type ClienteSessionUser = {
+  id?: string | null
+  email?: string | null
+  numeroDeSuite?: number | null
+}
 
 /**
  * Cache de dados do dashboard do cliente.
  * Revalida a cada 30 segundos — suficiente para não parecer stale,
  * mas evita bater no banco a cada navegação.
  */
-export const getClienteDashboard = unstable_cache(
-  async (usuarioId: string) => {
-    const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
-      include: {
-        itens: {
-          orderBy: { dataEntrada: 'desc' },
-          take: 5,
-        },
+export async function getClienteDashboard(user: ClienteSessionUser) {
+  const cliente = await prisma.cliente.findFirst({
+    where: clienteWhereFromSession(user),
+    include: {
+      itens: {
+        orderBy: { dataEntrada: 'desc' },
+        take: 5,
       },
-    })
+    },
+  })
 
-    if (!cliente) return null
+  if (!cliente) return null
 
-    const [emArmazem, emEnvio, entregues] = await Promise.all([
-      prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } }),
-      prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['EM_ENVIO', 'ENVIADO'] } } }),
-      prisma.item.count({ where: { clienteId: cliente.id, status: 'ENTREGUE' } }),
-    ])
+  const [emArmazem, emEnvio, entregues] = await Promise.all([
+    prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['RECEBIDO', 'EM_ARMAZEM'] } } }),
+    prisma.item.count({ where: { clienteId: cliente.id, status: { in: ['EM_ENVIO', 'ENVIADO'] } } }),
+    prisma.item.count({ where: { clienteId: cliente.id, status: 'ENTREGUE' } }),
+  ])
 
-    return { cliente, emArmazem, emEnvio, entregues }
-  },
-  ['cliente-dashboard'],
-  { revalidate: 30, tags: ['cliente-dashboard'] }
-)
+  return { cliente, emArmazem, emEnvio, entregues }
+}
 
 /**
  * Cache de métricas do admin dashboard.
@@ -79,10 +82,9 @@ export const getAdminDashboard = unstable_cache(
  * Cache de itens do cliente.
  * Revalida a cada 30 segundos.
  */
-export const getClienteItens = unstable_cache(
-  async (usuarioId: string) => {
+export async function getClienteItens(user: ClienteSessionUser) {
     const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
+      where: clienteWhereFromSession(user),
     })
 
     if (!cliente) return null
@@ -93,33 +95,26 @@ export const getClienteItens = unstable_cache(
     })
 
     return { cliente, itens }
-  },
-  ['cliente-itens'],
-  { revalidate: 30, tags: ['cliente-itens'] }
-)
+}
 
 /**
  * Cache de envios do cliente.
  * Revalida a cada 30 segundos.
  */
-export const getClienteEnvios = unstable_cache(
-  async (usuarioId: string) => {
-    const cliente = await prisma.cliente.findFirst({
-      where: { usuario: { id: usuarioId } },
-    })
+export async function getClienteEnvios(user: ClienteSessionUser) {
+  const cliente = await prisma.cliente.findFirst({
+    where: clienteWhereFromSession(user),
+  })
 
-    if (!cliente) return null
+  if (!cliente) return null
 
-    const envios = await prisma.envio.findMany({
-      where: { clienteId: cliente.id },
-      include: {
-        itens: { include: { item: { select: { descricao: true } } } },
-      },
-      orderBy: { criadoEm: 'desc' },
-    })
+  const envios = await prisma.envio.findMany({
+    where: { clienteId: cliente.id },
+    include: {
+      itens: { include: { item: { select: { descricao: true } } } },
+    },
+    orderBy: { criadoEm: 'desc' },
+  })
 
-    return { cliente, envios }
-  },
-  ['cliente-envios'],
-  { revalidate: 30, tags: ['cliente-envios'] }
-)
+  return { cliente, envios }
+}

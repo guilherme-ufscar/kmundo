@@ -98,6 +98,7 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
             cliente={{
               id: cliente.id,
               nomeCompleto: cliente.nomeCompleto,
+              documento: cliente.documento,
               telefone: cliente.telefone,
               pais: cliente.pais,
               cep: cliente.cep,
@@ -208,6 +209,7 @@ export default async function ClienteDetalhePage({ params }: { params: { id: str
                           trackingEnvio: envio.trackingEnvio,
                           dataLimitePagamento: envio.dataLimitePagamento?.toISOString() ?? null,
                           observacoes: envio.observacoes,
+                          declaracaoConteudo: envio.declaracaoConteudo,
                           fretePago: envio.fretePago,
                         }}
                         fotos={envio.fotos}

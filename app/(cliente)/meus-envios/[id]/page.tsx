@@ -1,9 +1,11 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package, Truck, Calendar, MessageSquare, CheckCircle } from 'lucide-react'
 import { ConfirmarEnvioButton } from '@/components/cliente/ConfirmarEnvioButton'
+import { CobrancasCliente } from '@/components/cliente/CobrancasCliente'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
@@ -51,7 +53,7 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
   const session = await auth()
 
   const cliente = await prisma.cliente.findFirst({
-    where: { usuario: { id: session!.user!.id } },
+    where: clienteWhereFromSession(session!.user!),
   })
   if (!cliente) notFound()
 
@@ -63,6 +65,7 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
           item: { select: { id: true, descricao: true, lojaOrigem: true, trackingLoja: true } },
         },
       },
+      cobrancas: { include: { notaFiscal: true }, orderBy: { criadoEm: 'desc' } },
     },
   })
 
@@ -124,6 +127,13 @@ export default async function EnvioDetalhePage({ params }: PageProps) {
             </p>
           )}
           <ConfirmarEnvioButton envioId={envio.id} />
+        </div>
+      )}
+
+      {/* Dados do envio */}
+      {envio.cobrancas.length > 0 && (
+        <div className="mb-5">
+          <CobrancasCliente cobrancas={envio.cobrancas.map(c => ({ ...c, criadoEm: c.criadoEm.toISOString() }))} />
         </div>
       )}
 

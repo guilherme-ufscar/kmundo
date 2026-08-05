@@ -11,6 +11,7 @@ interface Props {
   cliente: {
     id: string
     nomeCompleto: string
+    documento: string | null
     telefone: string
     pais: string
     cep: string | null
@@ -29,6 +30,7 @@ interface Props {
 export function ClienteEditForm({ cliente, email }: Props) {
   const router = useRouter()
   const [nomeCompleto, setNomeCompleto] = useState(cliente.nomeCompleto)
+  const [documento, setDocumento] = useState(cliente.documento ?? '')
   const [telefone, setTelefone] = useState(cliente.telefone)
   const [pais, setPais] = useState(cliente.pais)
   const [cep, setCep] = useState(cliente.cep ?? '')
@@ -81,6 +83,7 @@ export function ClienteEditForm({ cliente, email }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nomeCompleto: nomeCompleto.trim(),
+          documento: documento.trim() || undefined,
           telefone: telefone.trim(),
           pais: pais.trim(),
           cep: cep.trim() || undefined,
@@ -202,6 +205,11 @@ export function ClienteEditForm({ cliente, email }: Props) {
         <div className="col-span-2">
           <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>Nome completo *</label>
           <Input value={nomeCompleto} onChange={e => setNomeCompleto(e.target.value)} className="mt-1 h-9 text-sm" style={{ borderRadius: '8px' }} />
+        </div>
+
+        <div className="col-span-2">
+          <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>CPF ou CNPJ (necessário para nota fiscal)</label>
+          <Input value={documento} onChange={e => setDocumento(e.target.value)} placeholder="000.000.000-00" className="mt-1 h-9 text-sm" style={{ borderRadius: '8px' }} />
         </div>
 
         {/* Email */}

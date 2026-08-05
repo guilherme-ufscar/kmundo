@@ -25,9 +25,19 @@ const statusColors: Record<string, string> = {
 
 export default async function MeusItensPage() {
   const session = await auth()
-  const data = await getClienteItens(session!.user!.id)
+  const data = await getClienteItens(session!.user!)
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <div className="p-4 sm:p-8">
+        <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <Package className="w-12 h-12 mx-auto mb-3" style={{ color: '#E5E7EB' }} />
+          <h1 className="text-lg font-semibold" style={{ color: '#1A1A2E' }}>Não encontramos sua suite</h1>
+          <p className="text-sm mt-2" style={{ color: '#6B7280' }}>Saia e entre novamente. Se continuar, avise a equipe para revisar o cadastro da suite.</p>
+        </div>
+      </div>
+    )
+  }
 
   const { itens } = data
 

@@ -16,6 +16,12 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
+      - BLING_ACCESS_TOKEN=${BLING_ACCESS_TOKEN}
+      - BLING_CLIENT_ID=${BLING_CLIENT_ID}
+      - BLING_CLIENT_SECRET=${BLING_CLIENT_SECRET}
+      - BLING_TOKEN_ENCRYPTION_KEY=${BLING_TOKEN_ENCRYPTION_KEY}
+      - BLING_SERVICO_CODIGO=${BLING_SERVICO_CODIGO}
+      - UPLOAD_DIR=/app/uploads
       - NODE_ENV=production
     depends_on:
       postgres:
@@ -28,6 +34,8 @@ services:
       start_period: 40s
     networks:
       - suite-network
+    volumes:
+      - ./uploads:/app/uploads
     restart: always
 
   postgres:
@@ -49,8 +57,30 @@ services:
     restart: always
     # Postgres isolado na rede interna — sem porta exposta em produção
 
+  backup:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-56}
+    volumes:
+      - ./backups:/backups
+      - ./docker/backup/backup.sh:/usr/local/bin/backup:ro
+      - ./docker/backup/crontab:/etc/crontabs/root:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["/bin/sh", "-c", "sh /usr/local/bin/backup && exec crond -f -l 2"]
+    networks:
+      - suite-network
+    restart: always
+
 volumes:
   postgres_data:
+    name: kmundo_postgres_data
 
 networks:
   suite-network:

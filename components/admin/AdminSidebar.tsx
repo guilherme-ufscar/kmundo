@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail, FileText, ShoppingBag, BriefcaseBusiness } from 'lucide-react'
+import { LayoutDashboard, Users, List, Settings, LogOut, ShieldCheck, Link2, Truck, Mail, FileText, ShoppingBag, BriefcaseBusiness, WalletCards, PackageCheck } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cn } from '@/lib/utils'
 
@@ -12,7 +12,10 @@ const navLinks = [
   { href: '/admin/clientes', label: 'Clientes', icon: Users },
   { href: '/admin/itens', label: 'Itens', icon: List },
   { href: '/admin/envios', label: 'Envios', icon: Truck },
+  { href: '/admin/operacional', label: 'Operacional', icon: PackageCheck },
+  { href: '/admin/shop', label: 'Shop', icon: ShoppingBag },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: WalletCards },
   { href: '/admin/funcionarios', label: 'Funcionários', icon: BriefcaseBusiness },
   { href: '/admin/convites', label: 'Convites', icon: Link2 },
   { href: '/admin/email', label: 'Email', icon: Mail },
@@ -37,7 +40,7 @@ export function AdminSidebar({ email }: { email: string }) {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1">
           {navLinks.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(href + '/')
             return (

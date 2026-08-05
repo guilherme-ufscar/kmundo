@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Truck, Package, ChevronRight, CheckCircle, CheckCircle2 } from 'lucide-react'
+import { Truck, Package, ChevronRight, CheckCircle, CheckCircle2, Search } from 'lucide-react'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
@@ -29,7 +29,7 @@ const metodoLabel: Record<string, string> = {
 }
 
 interface PageProps {
-  searchParams: { status?: string; metodo?: string }
+  searchParams: { status?: string; metodo?: string; busca?: string }
 }
 
 export default async function AdminEnviosPage({ searchParams }: PageProps) {
@@ -39,6 +39,15 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
   const where: Record<string, unknown> = {}
   if (searchParams.status) where['status'] = searchParams.status
   if (searchParams.metodo) where['metodoEnvio'] = searchParams.metodo
+  if (searchParams.busca?.trim()) {
+    const busca = searchParams.busca.trim()
+    where['cliente'] = {
+      OR: [
+        { nomeCompleto: { contains: busca, mode: 'insensitive' } },
+        ...(!Number.isNaN(Number(busca)) ? [{ numeroDeSuite: Number(busca) }] : []),
+      ],
+    }
+  }
 
   const envios = await prisma.envio.findMany({
     where,
@@ -59,6 +68,15 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filtros */}
+      <form className="mb-4 flex gap-2 max-w-xl">
+        <input type="hidden" name="status" value={searchParams.status ?? ''} />
+        <input type="hidden" name="metodo" value={searchParams.metodo ?? ''} />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
+          <input name="busca" defaultValue={searchParams.busca ?? ''} placeholder="Buscar cliente por nome ou número da suíte" className="h-10 w-full rounded-lg border pl-9 pr-3 text-sm" style={{ borderColor: '#E5E7EB' }} />
+        </div>
+        <button className="h-10 rounded-lg px-4 text-sm font-medium text-white" style={{ background: '#FF6B9D' }}>Buscar</button>
+      </form>
       <div className="bg-white rounded-2xl p-4 mb-6 flex flex-wrap gap-3" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         {[
           { label: 'Todos', value: '' },
@@ -73,7 +91,7 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
           return (
             <Link
               key={value}
-              href={value ? `/admin/envios?status=${value}` : '/admin/envios'}
+              href={`/admin/envios?${new URLSearchParams({ ...(value ? { status: value } : {}), ...(searchParams.metodo ? { metodo: searchParams.metodo } : {}), ...(searchParams.busca ? { busca: searchParams.busca } : {}) })}`}
               className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
               style={{
                 background: ativo ? '#FF6B9D' : '#F3F4F6',
@@ -94,7 +112,7 @@ export default async function AdminEnviosPage({ searchParams }: PageProps) {
           return (
             <Link
               key={value}
-              href={`/admin/envios?metodo=${value}${searchParams.status ? `&status=${searchParams.status}` : ''}`}
+              href={`/admin/envios?${new URLSearchParams({ metodo: value, ...(searchParams.status ? { status: searchParams.status } : {}), ...(searchParams.busca ? { busca: searchParams.busca } : {}) })}`}
               className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
               style={{
                 background: ativo ? '#C77DFF' : '#F3F4F6',
