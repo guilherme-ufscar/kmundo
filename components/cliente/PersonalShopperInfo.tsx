@@ -56,64 +56,75 @@ export function PersonalShopperInfo() {
 
   return (
     <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-8">
-      <button
-        type="button"
-        onClick={() => setAberto((v) => !v)}
-        aria-expanded={aberto}
-        className="w-full flex items-center justify-between gap-3 p-6 sm:p-8 text-left hover:bg-gray-50/50 transition-colors"
-      >
-        <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>O que é o Personal Shopper?</h2>
-        <ChevronDown className={`w-5 h-5 shrink-0 transition-transform ${aberto ? 'rotate-180' : ''}`} style={{ color: '#6B7280' }} />
-      </button>
-
-      <div className="px-6 sm:px-8 pb-6 sm:pb-8">
-        {!aberto ? (
-          <div className="space-y-3">
-            <div className="relative">
-              <p className="text-sm leading-relaxed line-clamp-6" style={{ color: '#6B7280' }}>
-                {paragrafos[0]} {paragrafos[1]}
-              </p>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white to-transparent" />
-            </div>
-            <p className="text-sm font-semibold" style={{ color: '#FF6B9D' }}>Clique para saber mais</p>
+      {!aberto ? (
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          aria-expanded={false}
+          className="w-full text-left p-6 sm:p-8 hover:bg-gray-50/50 transition-colors"
+        >
+          <span className="flex items-center justify-between gap-3 mb-4">
+            <span className="text-lg font-bold" style={{ color: '#1A1A2E' }}>O que é o Personal Shopper?</span>
+            <ChevronDown className="w-5 h-5 shrink-0" style={{ color: '#6B7280' }} />
+          </span>
+          <div className="relative">
+            <p className="text-sm leading-relaxed line-clamp-6" style={{ color: '#6B7280' }}>
+              {paragrafos[0]} {paragrafos[1]}
+            </p>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white to-transparent" />
           </div>
-        ) : (
-          <div className="space-y-8">
-            <div className="space-y-3">
-              {paragrafos.map((p) => bloco(p))}
-            </div>
+          <p className="text-sm font-semibold mt-3" style={{ color: '#FF6B9D' }}>Clique para saber mais</p>
+        </button>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setAberto(false)}
+            aria-expanded={true}
+            className="w-full flex items-center justify-between gap-3 p-6 sm:p-8 text-left hover:bg-gray-50/50 transition-colors"
+          >
+            <h2 className="text-lg font-bold" style={{ color: '#1A1A2E' }}>O que é o Personal Shopper?</h2>
+            <ChevronDown className="w-5 h-5 shrink-0 transition-transform rotate-180" style={{ color: '#6B7280' }} />
+          </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-2xl p-5" style={{ background: '#FFF1F5' }}>
-                <h3 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Taxa de serviço</h3>
-                {bloco('O valor informado no produto já inclui:', true)}
-                <div className="mt-3 mb-4">{lista(listaInclui, 'check')}</div>
-                {bloco('A taxa de serviço corresponde ao trabalho realizado pela nossa equipe, incluindo:')}
-                <div className="mt-3">{lista(listaTaxaServico, 'check')}</div>
+          <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+            <div className="space-y-8">
+              <div className="space-y-3">
+                {paragrafos.map((p) => bloco(p))}
               </div>
 
-              <div className="rounded-2xl p-5" style={{ background: '#FEF2F2' }}>
-                <h3 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Informações importantes</h3>
-                {bloco('Antes de finalizar sua compra, leia atentamente toda a descrição do produto.')}
-                <div className="mt-3 mb-4">
-                  {bloco('O valor do Personal Shopper não inclui:', true)}
-                  <div className="mt-3">{lista(listaNaoInclui, 'x')}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-2xl p-5" style={{ background: '#FFF1F5' }}>
+                  <h3 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Taxa de serviço</h3>
+                  {bloco('O valor informado no produto já inclui:', true)}
+                  <div className="mt-3 mb-4">{lista(listaInclui, 'check')}</div>
+                  {bloco('A taxa de serviço corresponde ao trabalho realizado pela nossa equipe, incluindo:')}
+                  <div className="mt-3">{lista(listaTaxaServico, 'check')}</div>
                 </div>
-                {bloco('Ao contratar nosso serviço, você está solicitando a compra de um item específico escolhido por você. Após a confirmação da compra, não realizamos cancelamentos ou reembolsos, pois o processo de pesquisa, compra e atendimento já terá sido iniciado.')}
+
+                <div className="rounded-2xl p-5" style={{ background: '#FEF2F2' }}>
+                  <h3 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Informações importantes</h3>
+                  {bloco('Antes de finalizar sua compra, leia atentamente toda a descrição do produto.')}
+                  <div className="mt-3 mb-4">
+                    {bloco('O valor do Personal Shopper não inclui:', true)}
+                    <div className="mt-3">{lista(listaNaoInclui, 'x')}</div>
+                  </div>
+                  {bloco('Ao contratar nosso serviço, você está solicitando a compra de um item específico escolhido por você. Após a confirmação da compra, não realizamos cancelamentos ou reembolsos, pois o processo de pesquisa, compra e atendimento já terá sido iniciado.')}
+                </div>
+              </div>
+
+              <div className="rounded-2xl p-5" style={{ background: '#F8F9FA' }}>
+                {bloco('Certifique-se de todas as informações do produto antes de concluir seu pedido. Caso tenha dúvidas sobre o serviço, entre em contato com nosso suporte pelo WhatsApp antes de finalizar sua solicitação.', true)}
+                <p className="text-sm mt-3">
+                  <Link href="/meus-pedidos" className="font-semibold hover:underline" style={{ color: '#FF6B9D' }}>
+                    Acessar a área de Pedidos →
+                  </Link>
+                </p>
               </div>
             </div>
-
-            <div className="rounded-2xl p-5" style={{ background: '#F8F9FA' }}>
-              {bloco('Certifique-se de todas as informações do produto antes de concluir seu pedido. Caso tenha dúvidas sobre o serviço, entre em contato com nosso suporte pelo WhatsApp antes de finalizar sua solicitação.', true)}
-              <p className="text-sm mt-3">
-                <Link href="/meus-pedidos" className="font-semibold hover:underline" style={{ color: '#FF6B9D' }}>
-                  Acessar a área de Pedidos →
-                </Link>
-              </p>
-            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </section>
   )
 }
