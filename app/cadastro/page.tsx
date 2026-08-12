@@ -6,15 +6,25 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, MapPin, ArrowRight, CheckCircle, Loader2, CreditCard } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { validarCpf } from '@/lib/validations/auth'
+
+function mascaraCpf(valor: string): string {
+  const digitos = valor.replace(/\D/g, '').slice(0, 11)
+  return digitos
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
+}
 
 const cadastroSchema = z.object({
   nomeCompleto: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
   email: z.string().email('Email inválido'),
+  cpf: z.string().refine(validarCpf, { message: 'CPF inválido' }),
   password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
   confirmPassword: z.string(),
   telefone: z.string().min(8, 'Telefone inválido'),
@@ -81,6 +91,7 @@ export default function CadastroPage() {
           email: data.email,
           password: data.password,
           nomeCompleto: data.nomeCompleto,
+          cpf: data.cpf,
           telefone: data.telefone,
           pais: data.pais,
           cep: data.cep,
@@ -199,6 +210,27 @@ export default function CadastroPage() {
                   <Input type="email" placeholder="seu@email.com" className="pl-10 h-11" style={{ borderRadius: '8px' }} {...register('email')} />
                 </div>
                 {errors.email && <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.email.message}</p>}
+              </div>
+
+              {/* CPF */}
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#374151' }}>CPF</Label>
+                <div className="relative mt-1.5">
+                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
+                  <Input
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    className="pl-10 h-11"
+                    style={{ borderRadius: '8px' }}
+                    {...register('cpf')}
+                    onChange={(e) => {
+                      e.target.value = mascaraCpf(e.target.value)
+                      setValue('cpf', e.target.value)
+                    }}
+                  />
+                </div>
+                {errors.cpf && <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.cpf.message}</p>}
               </div>
 
               {/* Telefone */}

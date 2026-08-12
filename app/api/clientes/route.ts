@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { email, password, nomeCompleto, telefone, pais, endereco, cidade, cep, complemento, bairro, estado } = parsed.data
+  const { email, password, nomeCompleto, cpf, telefone, pais, endereco, cidade, cep, complemento, bairro, estado } = parsed.data
 
   const existente = await prisma.usuario.findUnique({ where: { email } })
   if (existente) {
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
             create: {
               numeroDeSuite,
               nomeCompleto,
+              documento: cpf,
               telefone,
               pais,
               cep,

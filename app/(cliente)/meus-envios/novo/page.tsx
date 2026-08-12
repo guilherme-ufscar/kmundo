@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-type MetodoEnvio = 'FEDEX' | 'EMS' | 'ENVIO_EM_GRUPO'
+type MetodoEnvio = 'EMS' | 'ENVIO_EM_GRUPO'
 
 interface ItemDisponivel {
   id: string
@@ -18,7 +18,6 @@ interface ItemDisponivel {
 }
 
 const metodos: { value: MetodoEnvio; label: string; desc: string }[] = [
-  { value: 'FEDEX', label: 'FedEx', desc: 'Entrega expressa internacional' },
   { value: 'EMS', label: 'EMS', desc: 'Serviço postal expresso' },
   { value: 'ENVIO_EM_GRUPO', label: 'Envio em Grupo', desc: 'Consolide com outras clientes e economize' },
 ]

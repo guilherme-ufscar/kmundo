@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { notificarAdminNovoEnvio, notificarClienteEnvioSolicitado } from '@/lib/email'
 
 const criarEnvioSchema = z.object({
-  metodoEnvio: z.enum(['FEDEX', 'EMS', 'ENVIO_EM_GRUPO']),
+  metodoEnvio: z.enum(['EMS', 'ENVIO_EM_GRUPO']),
   itemIds: z.array(z.string()).min(1, 'Selecione ao menos um item'),
   valorDeclarado: z.number().positive().optional(),
   declaracaoConteudo: z.string().min(3).optional(),
