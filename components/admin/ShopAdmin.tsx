@@ -4,11 +4,13 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImagePlus, Pencil, Save, ToggleLeft, ToggleRight, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { CATEGORIAS_SHOP } from '@/lib/shop-categorias'
 
 type Produto = {
   id: string
   nome: string
   descricao: string | null
+  categoria: string | null
   precoEstimado: number | null
   moeda: string
   imagemUrl: string | null
@@ -20,6 +22,7 @@ type Produto = {
 type FormValues = {
   nome: string
   descricao: string
+  categoria: string
   precoEstimado: string
   moeda: string
   imagemUrl: string
@@ -27,12 +30,13 @@ type FormValues = {
   ordem: string
 }
 
-const formVazio: FormValues = { nome: '', descricao: '', precoEstimado: '', moeda: 'BRL', imagemUrl: '', urlProduto: '', ordem: '0' }
+const formVazio: FormValues = { nome: '', descricao: '', categoria: '', precoEstimado: '', moeda: 'BRL', imagemUrl: '', urlProduto: '', ordem: '0' }
 
 function produtoParaForm(produto: Produto): FormValues {
   return {
     nome: produto.nome,
     descricao: produto.descricao ?? '',
+    categoria: produto.categoria ?? '',
     precoEstimado: produto.precoEstimado != null ? String(produto.precoEstimado) : '',
     moeda: produto.moeda,
     imagemUrl: produto.imagemUrl ?? '',
@@ -82,6 +86,7 @@ function ProdutoForm({ produto, onSucesso }: { produto: Produto | null; onSucess
       body: JSON.stringify({
         nome: form.nome.trim(),
         descricao: ehEdicao ? (form.descricao.trim() || null) : (form.descricao.trim() || undefined),
+        categoria: ehEdicao ? (form.categoria.trim() || null) : (form.categoria.trim() || undefined),
         precoEstimado: form.precoEstimado ? Number(form.precoEstimado) : ehEdicao ? null : undefined,
         moeda: form.moeda,
         imagemUrl: ehEdicao ? (form.imagemUrl.trim() || null) : (form.imagemUrl.trim() || undefined),
@@ -101,6 +106,10 @@ function ProdutoForm({ produto, onSucesso }: { produto: Produto | null; onSucess
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Nome do produto" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
+        <select value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} className="h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white">
+          <option value="">Sem categoria</option>
+          {CATEGORIAS_SHOP.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
         <input value={form.urlProduto} onChange={e => setForm(f => ({ ...f, urlProduto: e.target.value }))} placeholder="Link de referência ou compra" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
         <div className="flex gap-2">
           <input value={form.precoEstimado} onChange={e => setForm(f => ({ ...f, precoEstimado: e.target.value }))} type="number" step="0.01" placeholder="Preço estimado" className="h-10 flex-1 min-w-0 rounded-lg border border-gray-200 px-3 text-sm" />
@@ -158,6 +167,10 @@ export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
   const router = useRouter()
   const [editando, setEditando] = useState<Produto | null>(null)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+
+  const categoriasPresentes = Array.from(new Set(produtos.map(p => p.categoria).filter((c): c is string => !!c)))
+  const produtosFiltrados = filtroCategoria ? produtos.filter(p => p.categoria === filtroCategoria) : produtos
 
   async function alternar(produto: Produto) {
     const res = await fetch(`/api/shop/produtos/${produto.id}`, {
@@ -193,8 +206,21 @@ export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
         <ProdutoForm produto={null} onSucesso={() => router.refresh()} />
       </div>
 
+      {categoriasPresentes.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setFiltroCategoria('')} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === '' ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === '' ? '#FF6B9D' : '#6B7280', background: filtroCategoria === '' ? '#FFF1F5' : 'white' }}>
+            Todos
+          </button>
+          {categoriasPresentes.map(c => (
+            <button key={c} type="button" onClick={() => setFiltroCategoria(filtroCategoria === c ? '' : c)} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === c ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === c ? '#FF6B9D' : '#6B7280', background: filtroCategoria === c ? '#FFF1F5' : 'white' }}>
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {produtos.map((produto) => (
+        {produtosFiltrados.map((produto) => (
           <div key={produto.id} className="bg-white border border-gray-100 rounded-lg p-4 flex gap-4">
             <div className="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
               {produto.imagemUrl ? (
@@ -207,6 +233,9 @@ export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
                 <div className="min-w-0">
                   <p className="font-medium truncate" style={{ color: '#1A1A2E' }}>{produto.nome}</p>
                   <p className="text-xs" style={{ color: '#6B7280' }}>{produto.precoEstimado != null ? `${produto.moeda} ${produto.precoEstimado.toFixed(2)}` : 'Sob cotação'}</p>
+                  {produto.categoria && (
+                    <span className="inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full" style={{ background: '#FFF1F5', color: '#FF6B9D' }}>{produto.categoria}</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button type="button" onClick={() => setEditando(produto)} className="p-1 rounded-md hover:bg-gray-100" aria-label="Editar produto" title="Editar produto">
