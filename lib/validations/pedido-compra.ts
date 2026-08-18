@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const pedidoCompraItemSchema = z.object({
+  produtoShopId: z.string().optional(),
   nomeProduto: z.string().min(2, 'Informe o nome do produto'),
   urlProduto: z.string().url('Informe um link válido').optional().or(z.literal('')),
   quantidade: z.number().int().min(1, 'Quantidade mínima é 1'),

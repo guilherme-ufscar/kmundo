@@ -64,12 +64,13 @@ export async function POST(req: NextRequest) {
       formaPagamentoCliente: parsed.data.formaPagamentoCliente,
       itens: {
         create: parsed.data.itens.map((item) => ({
-          nomeProduto: item.nomeProduto,
-          urlProduto: item.urlProduto || undefined,
-          quantidade: item.quantidade,
-          variacao: item.variacao || undefined,
-          observacoes: item.observacoes || undefined,
-        })),
+                  produtoShopId: item.produtoShopId || undefined,
+                  nomeProduto: item.nomeProduto,
+                  urlProduto: item.urlProduto || undefined,
+                  quantidade: item.quantidade,
+                  variacao: item.variacao || undefined,
+                  observacoes: item.observacoes || undefined,
+                })),
       },
     },
     include: {

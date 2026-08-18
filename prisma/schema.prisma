@@ -311,6 +311,7 @@ model ProdutoShop {
   id            String             @id @default(cuid())
   nome          String
   descricao     String?            @db.Text
+  categoria     String?
   precoEstimado Float?
   moeda         String             @default("BRL")
   imagemUrl     String?

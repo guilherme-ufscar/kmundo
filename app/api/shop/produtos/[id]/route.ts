@@ -6,6 +6,7 @@ import { z } from 'zod'
 const schema = z.object({
   nome: z.string().min(2).optional(),
   descricao: z.string().optional().nullable(),
+  categoria: z.string().max(40).optional().nullable(),
   precoEstimado: z.number().min(0).optional().nullable(),
   moeda: z.string().optional(),
   imagemUrl: z.string().optional().nullable(),
