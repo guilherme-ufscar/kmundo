@@ -42,6 +42,35 @@ async function main() {
   })
   console.log('✅ Admin criado:', admin.email)
 
+  // Produtos do Personal Shopper (idempotente: só cria se o nome não existir)
+  const produtosShop = [
+    { nome: 'Álbum BTS Proof (Standard)', descricao: 'Álbum oficial do BTS com photobook, livro de letras e fotos. Edição standard, lacrada.', categoria: 'Álbuns', precoEstimado: 45000, moeda: 'KRW', urlProduto: 'https://weverse.io/bts', ordem: 1 },
+    { nome: 'Álbum NewJeans — Get Up (Bag Version)', descricao: 'Álbum do NewJeans com pôster, adesivos e cards exclusivos.', categoria: 'Álbuns', precoEstimado: 32000, moeda: 'KRW', urlProduto: 'https://weverse.io/newjeans', ordem: 2 },
+    { nome: 'Máscara facial hidratante (pote)', descricao: 'Máscara coreana de hidratação profunda com niacinamida, uso noturno.', categoria: 'Maquiagem', precoEstimado: 28000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 3 },
+    { nome: 'Base líquida cobertura média', descricao: 'Base coreana com viço natural, tom médio, 30ml.', categoria: 'Maquiagem', precoEstimado: 35000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 4 },
+    { nome: 'Toner de arroz com extrato fermentado', descricao: 'Toner clareador com extrato de arroz fermentado, ideal para pele sensível.', categoria: 'Skincare', precoEstimado: 22000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 5 },
+    { nome: 'Protetor solar coreano SPF50+ PA++++', descricao: 'Protetor solar leve com acabamento glow, sem white cast.', categoria: 'Skincare', precoEstimado: 18000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 6 },
+    { nome: 'Blusa oversized com mangas bufantes', descricao: 'Blusa feminina estilo coreano, tecido leve, tamanho único.', categoria: 'Roupas', precoEstimado: 42000, moeda: 'KRW', urlProduto: 'https://www.musinsa.com', ordem: 7 },
+    { nome: 'Cardigan tricot cropped', descricao: 'Cardigan curto de tricô, cores pastel, estilo K-fashion.', categoria: 'Roupas', precoEstimado: 56000, moeda: 'KRW', urlProduto: 'https://www.musinsa.com', ordem: 8 },
+    { nome: 'Colar de coração prateado', descricao: 'Colar delicado com pingente de coração, banho prata.', categoria: 'Acessórios', precoEstimado: 15000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 9 },
+    { nome: 'Bolsa mini de couro vegano', descricao: 'Mini bolsa estilo coreano, alça de corrente, cores variadas.', categoria: 'Acessórios', precoEstimado: 48000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 10 },
+    { nome: 'Lightstick oficial (edição usada, ótimo estado)', descricao: 'Lightstick oficial de grupo K-pop, usado por pouco tempo, sem riscos, com caixa.', categoria: 'Itens usados', precoEstimado: 65000, moeda: 'KRW', urlProduto: 'https://www.bunjang.co.kr', ordem: 11 },
+    { nome: 'Photocard raro de grupo K-pop', descricao: 'Photocard oficial raro, edição limitada, em ótimo estado.', categoria: 'K-pop', precoEstimado: 25000, moeda: 'KRW', urlProduto: 'https://www.bunjang.co.kr', ordem: 12 },
+    { nome: 'Pelúcia de mascote coreana', descricao: 'Pelúcia fofa estilo coreano, 30cm, ideal para decoração.', categoria: 'Outros', precoEstimado: 30000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 13 },
+  ]
+
+  let produtosCriados = 0
+  for (const p of produtosShop) {
+    const existe = await prisma.produtoShop.findFirst({ where: { nome: p.nome } })
+    if (existe) continue
+    await prisma.produtoShop.create({ data: p })
+    produtosCriados++
+  }
+  if (produtosCriados > 0) console.log(`✅ ${produtosCriados} produtos do Personal Shopper criados com categorias`)
+  else console.log('ℹ️  Produtos do Personal Shopper já existem (seed idempotente)')
+
+
+
   // 5 clientes com dados realistas
   const clientes = [
     {
@@ -103,12 +132,22 @@ async function main() {
 
   const clienteIds: string[] = []
 
+  // Clientes demo — SÓ cria se o email não existir E a suite estiver livre
+  // (em produção as suites 1–5 costumam estar ocupadas por clientes reais: pula com aviso)
   for (const c of clientes) {
+    const emailJaExiste = await prisma.usuario.findUnique({ where: { email: c.email } })
+    if (emailJaExiste) {
+      console.log(`⏭️  Cliente demo ${c.email} já existe — pulando`)
+      continue
+    }
+    const suiteOcupada = await prisma.cliente.findUnique({ where: { numeroDeSuite: c.suite } })
+    if (suiteOcupada) {
+      console.log(`⏭️  Suite ${c.suite} já ocupada por cliente real — pulando demo ${c.email}`)
+      continue
+    }
     const senhaHash = await hash(c.senha, 12)
-    const usuario = await prisma.usuario.upsert({
-      where: { email: c.email },
-      update: {},
-      create: {
+    const usuario = await prisma.usuario.create({
+      data: {
         email: c.email,
         senha: senhaHash,
         role: 'CLIENTE',
@@ -291,8 +330,12 @@ async function main() {
     },
   ]
 
+  // Itens demo: só para os clientes demo que este seed criou de fato
+  // (clientesIds). Em produção as suites 1–5 são de clientes reais —
+  // nunca adicionar itens de demonstração a clientes reais.
+  const clientesDemoIds = new Set(clienteIds)
   for (const item of itens) {
-    if (!item.clienteId) continue
+    if (!item.clienteId || !clientesDemoIds.has(item.clienteId)) continue
     // Idempotente: não duplica itens de demonstração se o cliente já tiver a mesma descrição
     const jaExiste = await prisma.item.findFirst({
       where: { clienteId: item.clienteId, descricao: item.descricao },
@@ -312,33 +355,6 @@ async function main() {
     })
   }
   console.log(`✅ ${itens.length} itens criados com status e datas variados`)
-
-  // Produtos do Personal Shopper (idempotente: só cria se o nome não existir)
-  const produtosShop = [
-    { nome: 'Álbum BTS Proof (Standard)', descricao: 'Álbum oficial do BTS com photobook, livro de letras e fotos. Edição standard, lacrada.', categoria: 'Álbuns', precoEstimado: 45000, moeda: 'KRW', urlProduto: 'https://weverse.io/bts', ordem: 1 },
-    { nome: 'Álbum NewJeans — Get Up (Bag Version)', descricao: 'Álbum do NewJeans com pôster, adesivos e cards exclusivos.', categoria: 'Álbuns', precoEstimado: 32000, moeda: 'KRW', urlProduto: 'https://weverse.io/newjeans', ordem: 2 },
-    { nome: 'Máscara facial hidratante (pote)', descricao: 'Máscara coreana de hidratação profunda com niacinamida, uso noturno.', categoria: 'Maquiagem', precoEstimado: 28000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 3 },
-    { nome: 'Base líquida cobertura média', descricao: 'Base coreana com viço natural, tom médio, 30ml.', categoria: 'Maquiagem', precoEstimado: 35000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 4 },
-    { nome: 'Toner de arroz com extrato fermentado', descricao: 'Toner clareador com extrato de arroz fermentado, ideal para pele sensível.', categoria: 'Skincare', precoEstimado: 22000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 5 },
-    { nome: 'Protetor solar coreano SPF50+ PA++++', descricao: 'Protetor solar leve com acabamento glow, sem white cast.', categoria: 'Skincare', precoEstimado: 18000, moeda: 'KRW', urlProduto: 'https://www.oliveyoung.co.kr', ordem: 6 },
-    { nome: 'Blusa oversized com mangas bufantes', descricao: 'Blusa feminina estilo coreano, tecido leve, tamanho único.', categoria: 'Roupas', precoEstimado: 42000, moeda: 'KRW', urlProduto: 'https://www.musinsa.com', ordem: 7 },
-    { nome: 'Cardigan tricot cropped', descricao: 'Cardigan curto de tricô, cores pastel, estilo K-fashion.', categoria: 'Roupas', precoEstimado: 56000, moeda: 'KRW', urlProduto: 'https://www.musinsa.com', ordem: 8 },
-    { nome: 'Colar de coração prateado', descricao: 'Colar delicado com pingente de coração, banho prata.', categoria: 'Acessórios', precoEstimado: 15000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 9 },
-    { nome: 'Bolsa mini de couro vegano', descricao: 'Mini bolsa estilo coreano, alça de corrente, cores variadas.', categoria: 'Acessórios', precoEstimado: 48000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 10 },
-    { nome: 'Lightstick oficial (edição usada, ótimo estado)', descricao: 'Lightstick oficial de grupo K-pop, usado por pouco tempo, sem riscos, com caixa.', categoria: 'Itens usados', precoEstimado: 65000, moeda: 'KRW', urlProduto: 'https://www.bunjang.co.kr', ordem: 11 },
-    { nome: 'Photocard raro de grupo K-pop', descricao: 'Photocard oficial raro, edição limitada, em ótimo estado.', categoria: 'K-pop', precoEstimado: 25000, moeda: 'KRW', urlProduto: 'https://www.bunjang.co.kr', ordem: 12 },
-    { nome: 'Pelúcia de mascote coreana', descricao: 'Pelúcia fofa estilo coreano, 30cm, ideal para decoração.', categoria: 'Outros', precoEstimado: 30000, moeda: 'KRW', urlProduto: 'https://www.coupang.com', ordem: 13 },
-  ]
-
-  let produtosCriados = 0
-  for (const p of produtosShop) {
-    const existe = await prisma.produtoShop.findFirst({ where: { nome: p.nome } })
-    if (existe) continue
-    await prisma.produtoShop.create({ data: p })
-    produtosCriados++
-  }
-  if (produtosCriados > 0) console.log(`✅ ${produtosCriados} produtos do Personal Shopper criados com categorias`)
-  else console.log('ℹ️  Produtos do Personal Shopper já existem (seed idempotente)')
 
   console.log('\n🎉 Seed concluído!')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
