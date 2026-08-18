@@ -160,13 +160,19 @@ Veja o arquivo `.env.example` para a lista completa. As principais:
 |------|-----------|--------|
 | `/login` | Login | Público |
 | `/cadastro` | Cadastro + geração de suite | Público |
+| `/shop` | Personal Shopper — vitrine com busca, categorias e carrinho | Público |
 | `/dashboard` | Dashboard da cliente | Cliente |
 | `/meus-itens` | Lista de itens | Cliente |
+| `/meus-envios` | Envios do cliente | Cliente |
+| `/meus-pedidos` | Pedidos de compra (Personal Shopper) | Cliente |
+| `/servicos` | Serviços de armazém (unboxing, foto/vídeo...) | Cliente |
+| `/tracking` | Acompanhamento de envios | Cliente |
 | `/perfil` | Perfil editável | Cliente |
 | `/admin/dashboard` | Métricas do armazém | Admin |
 | `/admin/clientes` | Lista de clientes | Admin |
 | `/admin/itens` | Itens no armazém | Admin |
 | `/admin/itens/novo` | Registrar novo item | Admin |
+| `/admin/shop` | Vitrine do Personal Shopper (produtos, categorias) | Admin |
 | `/admin/configuracoes` | Configurações do sistema | Admin |
 
 ---
@@ -201,6 +207,22 @@ suite-manager/
 ├── Dockerfile
 └── .env.example
 ```
+
+---
+
+## Personal Shopper (Carrinho)
+
+A vitrine em `/shop` funciona como uma loja:
+
+1. O cliente **busca** (lupa — ignora acentos: "album" encontra "álbum") ou navega pelas **categorias** (Álbuns, Maquiagem, Skincare, Roupas, Acessórios, Itens usados, K-pop, Outros).
+2. Adiciona quantos produtos quiser ao **carrinho** (quantidade + variação por produto; carrinho persiste no `localStorage`).
+3. **Finaliza o pedido** — o sistema cria **um único pedido de compra** com todos os itens (`POST /api/pedidos`), vinculado aos produtos da vitrine via `produtoShopId`.
+4. A equipe recebe o pedido no admin com todos os itens de uma vez, verifica disponibilidade e informa o valor total.
+
+Detalhes:
+- Itens "Sob cotação" são somados como 0 no total estimado, com aviso de que a equipe confirmará o valor.
+- Cliente deslogado pode montar o carrinho, mas finalizar o pedido exige login.
+- Categorias são um campo livre (`ProdutoShop.categoria`) com lista padrão em `lib/shop-categorias.ts` — o admin pode criar categoria nova digitando no cadastro.
 
 ---
 
