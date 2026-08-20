@@ -4,17 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, CheckCircle2, XCircle } from 'lucide-react'
 
-const listaInclui = [
-  'Valor do item',
-  'Nossa taxa de serviço de ₩5.000 por item',
-]
-
 const listaTaxaServico = [
-  'Pesquisa do produto',
-  'Verificação de disponibilidade',
-  'Compra em lojas ou sites coreanos',
-  'Recebimento no nosso armazém',
-  'Registro fotográfico da mercadoria recebida e abertura da caixa',
+  'Pesquisa e cotação dos produtos',
+  'Contato e negociação com fornecedores e sites coreanos',
+  'Organização e acompanhamento do pedido',
+  'Recebimento e conferência das mercadorias no armazém',
+  'Envio de fotos e vídeos das mercadorias após a chegada ao armazém',
 ]
 
 const listaNaoInclui = [
@@ -96,10 +91,16 @@ export function PersonalShopperInfo() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="rounded-2xl p-5" style={{ background: '#FFF1F5' }}>
                   <h3 className="font-semibold mb-3" style={{ color: '#1A1A2E' }}>Taxa de serviço</h3>
-                  {bloco('O valor informado no produto já inclui:', true)}
-                  <div className="mt-3 mb-4">{lista(listaInclui, 'check')}</div>
-                  {bloco('A taxa de serviço corresponde ao trabalho realizado pela nossa equipe, incluindo:')}
-                  <div className="mt-3">{lista(listaTaxaServico, 'check')}</div>
+                  {bloco('A taxa de serviço é cobrada a partir de ₩5.000 e corresponde ao processo de intermediação e acompanhamento da sua compra na Coreia.')}
+                  <div className="mt-3 mb-4">
+                    {bloco('A taxa inclui:', true)}
+                    <div className="mt-3">{lista(listaTaxaServico, 'check')}</div>
+                  </div>
+                  {bloco('O valor da taxa de serviço pode variar de acordo com cada pedido, considerando sua complexidade e os serviços necessários.')}
+                  <div className="mt-4 rounded-xl p-4" style={{ background: 'rgba(255,107,157,0.08)' }}>
+                    {bloco('Importante: a taxa de serviço não é calculada por item, mas sim por pedido.', true)}
+                  </div>
+                  {bloco('O valor final da taxa será informado e calculado ao final da compra.')}
                 </div>
 
                 <div className="rounded-2xl p-5" style={{ background: '#FEF2F2' }}>
