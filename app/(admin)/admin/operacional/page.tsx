@@ -10,7 +10,7 @@ export default async function AdminOperacionalPage() {
   const [clientes, caixas, servicos] = await Promise.all([
     prisma.cliente.findMany({ where: { status: 'ATIVA' }, select: { id: true, nomeCompleto: true, numeroDeSuite: true }, orderBy: { numeroDeSuite: 'asc' } }),
     prisma.caixaRecebida.findMany({ include: { cliente: { select: { id: true, nomeCompleto: true, numeroDeSuite: true } } }, orderBy: { criadoEm: 'desc' }, take: 80 }),
-    prisma.solicitacaoServico.findMany({ include: { caixa: { select: { tracking: true } }, cliente: { select: { id: true, nomeCompleto: true, numeroDeSuite: true } } }, orderBy: { criadoEm: 'desc' }, take: 80 }),
+    prisma.solicitacaoServico.findMany({ include: { caixa: { select: { id: true, tracking: true } }, cliente: { select: { id: true, nomeCompleto: true, numeroDeSuite: true } } }, orderBy: { criadoEm: 'desc' }, take: 80 }),
   ])
 
   return (

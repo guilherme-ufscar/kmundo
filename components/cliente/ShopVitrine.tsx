@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Minus, Plus, Search, ShoppingBag, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { CATEGORIAS_SHOP } from '@/lib/shop-categorias'
+type Categoria = { id: string; nome: string }
 
 type Produto = {
   id: string
@@ -45,7 +45,7 @@ function carregarCarrinho(): CarrinhoItem[] {
   }
 }
 
-export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Produto[]; podeSolicitar?: boolean }) {
+export function ShopVitrine({ produtos, categorias = [], podeSolicitar = true }: { produtos: Produto[]; categorias?: Categoria[]; podeSolicitar?: boolean }) {
   const router = useRouter()
   const [quantidades, setQuantidades] = useState<Record<string, number>>({})
   const [variacoes, setVariacoes] = useState<Record<string, string>>({})
@@ -179,7 +179,7 @@ export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Prod
         )}
       </div>
 
-      {/* Categorias */}
+      {/* Categorias — dinâmicas do BD (editáveis em /admin/shop) */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
         <button
           type="button"
@@ -189,18 +189,18 @@ export function ShopVitrine({ produtos, podeSolicitar = true }: { produtos: Prod
         >
           Todos
         </button>
-        {CATEGORIAS_SHOP.filter(c => categoriasPresentes.includes(c)).map(c => (
+        {categorias.map(c => (
           <button
-            key={c}
+            key={c.id}
             type="button"
-            onClick={() => setCategoriaAtiva(categoriaAtiva === c ? null : c)}
+            onClick={() => setCategoriaAtiva(categoriaAtiva === c.nome ? null : c.nome)}
             className="h-8 px-3.5 rounded-full text-xs font-medium border transition-colors"
-            style={{ borderColor: categoriaAtiva === c ? '#FF6B9D' : '#E5E7EB', color: categoriaAtiva === c ? '#FF6B9D' : '#6B7280', background: categoriaAtiva === c ? '#FFF1F5' : 'white' }}
+            style={{ borderColor: categoriaAtiva === c.nome ? '#FF6B9D' : '#E5E7EB', color: categoriaAtiva === c.nome ? '#FF6B9D' : '#6B7280', background: categoriaAtiva === c.nome ? '#FFF1F5' : 'white' }}
           >
-            {c}
+            {c.nome}
           </button>
         ))}
-        {categoriasPresentes.filter(c => !(CATEGORIAS_SHOP as readonly string[]).includes(c)).map(c => (
+        {categoriasPresentes.filter(c => !categorias.some(cat => cat.nome === c)).map(c => (
           <button
             key={c}
             type="button"

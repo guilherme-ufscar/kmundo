@@ -21,7 +21,40 @@ export async function POST(req: NextRequest) {
   const cliente = await clienteDaSessao(session.user)
   if (!cliente) return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
   if (parsed.data.caixaId) { const caixa = await prisma.caixaRecebida.findFirst({ where: { id: parsed.data.caixaId, clienteId: cliente.id } }); if (!caixa) return NextResponse.json({ error: 'Caixa inválida' }, { status: 400 }) }
-  return NextResponse.json(await prisma.solicitacaoServico.create({ data: { ...parsed.data, clienteId: cliente.id } }), { status: 201 })
+
+  const solicitacao = await prisma.solicitacaoServico.create({ data: { ...parsed.data, clienteId: cliente.id } })
+
+  // Criar cobrança pendente automaticamente com preço da Config (se >0) — acumula na caixinha
+  try {
+    const config = await prisma.configuracao.findFirst()
+    const precoMap: Record<string, number> = {
+      UNBOXING: config?.precoUnboxing ?? 0,
+      FOTO_VIDEO: config?.precoFotoVideo ?? 0,
+      MEDICAO: config?.precoMedicao ?? 0,
+      REEMBALAGEM: config?.precoReembalagem ?? 0,
+      OUTRO: config?.precoOutro ?? 0,
+    }
+    const valor = precoMap[parsed.data.tipo] ?? 0
+    const moeda = config?.moedaTaxa ?? 'USD'
+    if (valor > 0) {
+      const caixa = parsed.data.caixaId ? await prisma.caixaRecebida.findUnique({ where: { id: parsed.data.caixaId } }) : null
+      const descricao = `Serviço ${parsed.data.tipo.replaceAll('_', ' ')}${caixa ? ` | ${caixa.tracking}` : ''}`
+      await prisma.cobranca.create({
+        data: {
+          clienteId: cliente.id,
+          solicitacaoId: solicitacao.id,
+          descricao,
+          valor,
+          moeda,
+          status: 'PENDENTE',
+        },
+      })
+    }
+  } catch (e) {
+    console.error('Falha ao criar cobrança de serviço', e)
+  }
+
+  return NextResponse.json(solicitacao, { status: 201 })
 }
 
 export async function PATCH(req: NextRequest) {

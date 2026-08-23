@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
   if (!clienteId) return NextResponse.json({ error: 'Cliente obrigatório' }, { status: 400 })
 
   try {
-    const jaRecebida = !!parsed.data.fotoEtiquetaUrl?.trim()
     const caixa = await prisma.caixaRecebida.create({
       data: {
         clienteId,
@@ -52,8 +51,7 @@ export async function POST(req: NextRequest) {
         comprovanteCompraUrl: parsed.data.comprovanteCompraUrl,
         fotoEtiquetaUrl: parsed.data.fotoEtiquetaUrl?.trim() || undefined,
         itemId: parsed.data.itemId,
-        status: jaRecebida ? 'RECEBIDA' : 'PENDENTE',
-        ...(jaRecebida ? { recebidoEm: new Date() } : {}),
+        status: 'PENDENTE',
       },
       include: { cliente: { include: { usuario: { select: { email: true } } } } },
     })

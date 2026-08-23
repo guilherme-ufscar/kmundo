@@ -44,3 +44,10 @@ docker/nginx/ssl/*.key
 next-env.d.ts
 
 /app/generated/prisma
+
+# AI tools
+.hermes/
+.kilo/
+.kilocode/
+.env (3)
+env (3)

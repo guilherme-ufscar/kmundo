@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PackageCheck, Upload, CheckCircle2, Search } from 'lucide-react'
+import Link from 'next/link'
+import { PackageCheck, Upload, CheckCircle2, Search, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 type Cliente = { id: string; nomeCompleto: string; numeroDeSuite: number }
@@ -17,7 +18,7 @@ type Caixa = {
   recebidoEm: Date | string | null
   criadoEm: Date | string
 }
-type Servico = { id: string; tipo: string; status: string; peso: number | null; largura: number | null; altura: number | null; comprimento: number | null; fotoUrls: string[]; videoUrl: string | null; observacoesEquipe: string | null; caixa: { tracking: string } | null; cliente: Cliente }
+type Servico = { id: string; tipo: string; status: string; peso: number | null; largura: number | null; altura: number | null; comprimento: number | null; fotoUrls: string[]; videoUrl: string | null; observacoesEquipe: string | null; caixa: { id: string; tracking: string } | null; cliente: Cliente }
 
 const MAX_FOTOS_SERVICO = 10
 
@@ -32,14 +33,35 @@ export function OperacionalAdmin({ clientes, caixas, servicos }: { clientes: Cli
   const [buscaCaixas, setBuscaCaixas] = useState('')
   const [buscaServicos, setBuscaServicos] = useState('')
 
+  const buscaCaixasNorm = buscaCaixas.trim().toLowerCase()
   const caixasFiltradas = caixas.filter(c =>
-    c.tracking.toLowerCase().includes(buscaCaixas.trim().toLowerCase()) ||
-    c.cliente.nomeCompleto.toLowerCase().includes(buscaCaixas.trim().toLowerCase())
+    c.tracking.toLowerCase().includes(buscaCaixasNorm) ||
+    c.cliente.nomeCompleto.toLowerCase().includes(buscaCaixasNorm) ||
+    String(c.cliente.numeroDeSuite).padStart(3, '0').includes(buscaCaixasNorm) ||
+    String(c.cliente.numeroDeSuite).includes(buscaCaixasNorm)
   )
+  const buscaServicosNorm = buscaServicos.trim().toLowerCase()
   const servicosFiltrados = servicos.filter(s =>
-    (s.caixa?.tracking ?? '').toLowerCase().includes(buscaServicos.trim().toLowerCase()) ||
-    s.cliente.nomeCompleto.toLowerCase().includes(buscaServicos.trim().toLowerCase())
+    (s.caixa?.tracking ?? '').toLowerCase().includes(buscaServicosNorm) ||
+    s.cliente.nomeCompleto.toLowerCase().includes(buscaServicosNorm) ||
+    String(s.cliente.numeroDeSuite).padStart(3, '0').includes(buscaServicosNorm) ||
+    String(s.cliente.numeroDeSuite).includes(buscaServicosNorm)
   )
+
+  const servicoMeta: Record<string, { label: string; color: string }> = {
+    UNBOXING: { label: 'Unboxing', color: '#22C55E' },
+    FOTO_VIDEO: { label: 'Foto/Vídeo', color: '#EF4444' },
+    MEDICAO: { label: 'Medida', color: '#3B82F6' },
+    REEMBALAGEM: { label: 'Reembalagem', color: '#EAB308' },
+  }
+  const ordemTipos = ['UNBOXING', 'FOTO_VIDEO', 'MEDICAO', 'REEMBALAGEM'] as const
+  const concluidosByCaixaId = new Map<string, Set<string>>()
+  for (const s of servicos) {
+    if (s.caixa?.id && s.status === 'CONCLUIDO') {
+      if (!concluidosByCaixaId.has(s.caixa.id)) concluidosByCaixaId.set(s.caixa.id, new Set())
+      concluidosByCaixaId.get(s.caixa.id)!.add(s.tipo)
+    }
+  }
 
   async function upload(files: File[]) {
     const data = new FormData()
@@ -72,7 +94,7 @@ export function OperacionalAdmin({ clientes, caixas, servicos }: { clientes: Cli
         }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Não foi possível cadastrar')
-      toast.success(fotoEtiquetaUrl ? 'Caixa cadastrada e recebimento confirmado' : 'Caixa registrada (aguardando chegada)')
+      toast.success('Caixa registrada — aguardando recebimento. Confirme quando chegar fisicamente no armazém.')
       setForm({ clienteId: clientes[0]?.id ?? '', tracking: '', lojaOrigem: '', observacoes: '' })
       setComprovante(null)
       setEtiqueta(null)
@@ -174,26 +196,41 @@ export function OperacionalAdmin({ clientes, caixas, servicos }: { clientes: Cli
               <input
                 value={buscaCaixas}
                 onChange={e => setBuscaCaixas(e.target.value)}
-                placeholder="Buscar por tracking..."
-                className="h-9 rounded-lg border border-gray-200 pl-9 pr-3 text-sm w-52"
+                placeholder="Buscar por nome, suíte ou tracking..."
+                className="h-9 rounded-lg border border-gray-200 pl-9 pr-3 text-sm w-56"
               />
             </div>
           </div>
+          <div className="mb-3 flex flex-wrap gap-3 text-xs rounded-lg p-3" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+            {ordemTipos.map(t => (
+              <span key={t} className="flex items-center gap-1.5" style={{ color: '#374151' }}>
+                <span className="w-3 h-3 rounded-full" style={{ background: servicoMeta[t].color }} />{servicoMeta[t].label}
+              </span>
+            ))}
+            <span style={{ color: '#9CA3AF' }}>— preenchido = concluído na caixa</span>
+          </div>
           <div className="space-y-3">
-            {caixasFiltradas.length === 0 && (
-              <p className="text-sm py-4 text-center" style={{ color: '#9CA3AF' }}>Nenhuma caixa encontrada</p>
-            )}
             {caixasFiltradas.map(caixa => {
               const pendente = caixa.status === 'PENDENTE'
-              return <div key={caixa.id} className="rounded-lg border border-gray-100 p-3">
-                <div className="flex items-start justify-between gap-2">
+              return <div key={caixa.id} className="rounded-lg border border-gray-100 p-3 hover:shadow-sm transition-shadow">
+                <Link href={`/admin/caixas/${caixa.id}`} className="flex items-start justify-between gap-2 hover:opacity-80">
                   <div className="min-w-0">
                     <p className="font-medium" style={{ color: '#1A1A2E' }}>{caixa.tracking}</p>
                     <p className="text-xs" style={{ color: '#6B7280' }}>Suite #{String(caixa.cliente.numeroDeSuite).padStart(3, '0')} - {caixa.cliente.nomeCompleto}</p>
                   </div>
-                  <span className={`shrink-0 rounded px-2 py-1 text-xs font-medium ${pendente ? 'bg-amber-100' : 'bg-green-100'}`} style={{ color: pendente ? '#B45309' : '#047857' }}>
-                    {pendente ? 'Aguardando chegada' : 'Recebida'}
+                  <span className="flex items-center gap-1 shrink-0">
+                    <span className={`rounded px-2 py-1 text-xs font-medium ${pendente ? 'bg-amber-100' : 'bg-green-100'}`} style={{ color: pendente ? '#92400E' : '#047857' }}>
+                      {pendente ? 'A caminho' : 'Recebida no armazém'}
+                    </span>
+                    <ChevronRight className="w-4 h-4" style={{ color: '#D1D5DB' }} />
                   </span>
+                </Link>
+                <div className="mt-2 flex items-center gap-1.5">
+                  {ordemTipos.map(t => {
+                    const done = concluidosByCaixaId.get(caixa.id)?.has(t)
+                    return <span key={t} title={`${servicoMeta[t].label}${done ? ' — concluído' : ''}`} className="w-3 h-3 rounded-full border" style={{ background: done ? servicoMeta[t].color : '#F3F4F6', borderColor: done ? servicoMeta[t].color : '#E5E7EB' }} />
+                  })}
+                  <span className="text-xs ml-1" style={{ color: '#9CA3AF' }}>serviços desta caixa</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs">
                   <a href={caixa.comprovanteCompraUrl} target="_blank" rel="noreferrer" className="rounded bg-gray-100 px-2 py-1">Comprovante</a>
@@ -230,8 +267,8 @@ export function OperacionalAdmin({ clientes, caixas, servicos }: { clientes: Cli
               <input
                 value={buscaServicos}
                 onChange={e => setBuscaServicos(e.target.value)}
-                placeholder="Buscar por tracking..."
-                className="h-9 rounded-lg border border-gray-200 pl-9 pr-3 text-sm w-52"
+                placeholder="Buscar por nome, suíte ou tracking..."
+                className="h-9 rounded-lg border border-gray-200 pl-9 pr-3 text-sm w-56"
               />
             </div>
           </div>
@@ -241,28 +278,52 @@ export function OperacionalAdmin({ clientes, caixas, servicos }: { clientes: Cli
             )}
             {servicosFiltrados.map(servico => {
               const edit = servicoEdit[servico.id] ?? { peso: '', largura: '', altura: '', comprimento: '', videoUrl: '', observacoesEquipe: '' }
-              const ehFotoVideo = servico.tipo === 'FOTO_VIDEO'
+              const isSolicitado = servico.status === 'SOLICITADO'
+              const isConcluido = servico.status === 'CONCLUIDO'
               return <div key={servico.id} className="rounded-lg border border-gray-100 p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-medium" style={{ color: '#1A1A2E' }}>{servico.tipo.replaceAll('_', ' ')}</p>
                     <p className="text-xs" style={{ color: '#6B7280' }}>#{String(servico.cliente.numeroDeSuite).padStart(3, '0')} - {servico.cliente.nomeCompleto} {servico.caixa?.tracking ? `| ${servico.caixa.tracking}` : ''}</p>
                   </div>
-                  <span className="text-xs rounded bg-gray-100 px-2 py-1">{servico.status.replaceAll('_', ' ')}</span>
+                  <span className="text-xs rounded-full px-2.5 py-1 font-semibold" style={{ background: isSolicitado ? '#FF6B9D' : isConcluido ? '#22C55E' : '#F3F4F6', color: isSolicitado || isConcluido ? 'white' : '#6B7280' }}>
+                    {servico.status.replaceAll('_', ' ')}
+                  </span>
                 </div>
-                {servico.observacoesEquipe && <p className="text-xs mt-2 rounded bg-gray-50 px-2 py-1" style={{ color: '#6B7280' }}>{servico.observacoesEquipe}</p>}
-                {servico.status !== 'CONCLUIDO' && <div className="mt-3 grid grid-cols-2 gap-2">
-                  {!ehFotoVideo && <>
-                    <input value={edit.peso} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, peso: e.target.value } }))} placeholder="Peso kg" type="number" step="0.01" className="h-9 rounded-lg border border-gray-200 px-2 text-sm" />
-                    <input value={edit.largura} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, largura: e.target.value } }))} placeholder="Largura cm" type="number" step="0.1" className="h-9 rounded-lg border border-gray-200 px-2 text-sm" />
-                    <input value={edit.altura} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, altura: e.target.value } }))} placeholder="Altura cm" type="number" step="0.1" className="h-9 rounded-lg border border-gray-200 px-2 text-sm" />
-                    <input value={edit.comprimento} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, comprimento: e.target.value } }))} placeholder="Comprimento cm" type="number" step="0.1" className="h-9 rounded-lg border border-gray-200 px-2 text-sm" />
-                  </>}
-                  <input value={edit.videoUrl} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, videoUrl: e.target.value } }))} placeholder="URL do video" className={`h-9 rounded-lg border border-gray-200 px-2 text-sm ${ehFotoVideo ? 'col-span-2' : ''}`} />
-                  <textarea value={edit.observacoesEquipe} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, observacoesEquipe: e.target.value } }))} placeholder="Observações" className="col-span-2 min-h-16 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
-                  <input id={`fotos-${servico.id}`} type="file" multiple accept="image/*,video/*" className="h-9 text-sm" />
-                  <button type="button" onClick={() => concluirServico(servico, (document.getElementById(`fotos-${servico.id}`) as HTMLInputElement | null)?.files ?? null)} className="col-span-2 h-9 rounded-lg text-sm font-semibold text-white" style={{ background: '#1A1A2E' }}>Concluir com arquivos</button>
-                </div>}
+                {isConcluido ? (
+                  <div className="mt-3 space-y-2 rounded-lg p-3" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+                    <p className="text-xs font-semibold" style={{ color: '#1A1A2E' }}>Provas arquivadas (visíveis após concluir):</p>
+                    {(servico.peso || servico.largura || servico.altura || servico.comprimento) && (
+                      <p className="text-xs" style={{ color: '#6B7280' }}>
+                        {[servico.peso ? `${servico.peso}kg` : null, servico.largura ? `${servico.largura}cm` : null, servico.altura ? `${servico.altura}cm` : null, servico.comprimento ? `${servico.comprimento}cm` : null].filter(Boolean).join(' × ')}
+                      </p>
+                    )}
+                    {servico.videoUrl && <a href={servico.videoUrl} target="_blank" rel="noreferrer" className="text-xs font-medium hover:underline" style={{ color: '#FF6B9D' }}>Ver vídeo</a>}
+                    {servico.fotoUrls.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {servico.fotoUrls.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt={`prova ${i}`} className="w-16 h-16 rounded-lg object-cover border hover:opacity-90" style={{ borderColor: '#E5E7EB' }} />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {servico.observacoesEquipe && <p className="text-xs rounded bg-white px-2 py-1.5" style={{ color: '#374151', border: '1px solid #E5E7EB' }}>{servico.observacoesEquipe}</p>}
+                  </div>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <div className="grid grid-cols-1 gap-2">
+                      <input value={edit.videoUrl} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, videoUrl: e.target.value } }))} placeholder="URL do vídeo (opcional)" className="h-9 rounded-lg border border-gray-200 px-2 text-sm" />
+                      <textarea value={edit.observacoesEquipe} onChange={e => setServicoEdit(s => ({ ...s, [servico.id]: { ...edit, observacoesEquipe: e.target.value } }))} placeholder="Observações da equipe" className="min-h-16 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
+                      <div>
+                        <p className="text-xs font-medium mb-1" style={{ color: '#374151' }}>Fotos da caixa (balança/medidas) — foto e vídeo</p>
+                        <input id={`fotos-${servico.id}`} type="file" multiple accept="image/*,video/*" className="w-full text-xs rounded-lg border border-dashed border-gray-300 px-2 py-2" />
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => concluirServico(servico, (document.getElementById(`fotos-${servico.id}`) as HTMLInputElement | null)?.files ?? null)} className="w-full h-9 rounded-lg text-sm font-semibold text-white" style={{ background: '#1A1A2E' }}>Concluir com arquivos</button>
+                  </div>
+                )}
               </div>
             })}
           </div>

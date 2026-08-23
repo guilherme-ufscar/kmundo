@@ -27,7 +27,7 @@ const tipos = [
 
 type TipoServico = (typeof tipos)[number][0]
 
-export function ServicosCliente({ caixas, servicos, precos }: { caixas: Caixa[]; servicos: Servico[]; precos: Precos }) {
+export function ServicosCliente({ caixas, servicos, precos, totalPendente, moedaTotal }: { caixas: Caixa[]; servicos: Servico[]; precos: Precos; totalPendente?: number; moedaTotal?: string }) {
   const router = useRouter()
   const [caixaId, setCaixaId] = useState(caixas[0]?.id ?? '')
   const [tipo, setTipo] = useState('UNBOXING')
@@ -44,7 +44,14 @@ export function ServicosCliente({ caixas, servicos, precos }: { caixas: Caixa[];
 
   function formatarPreco(valor: number) {
     if (valor <= 0) return 'consultar'
-    return `${valor.toFixed(2)} ${precos.moeda}`
+    const moeda = precos.moeda
+    if (moeda === 'KRW') return `${Math.round(valor).toLocaleString('pt-BR')} ${moeda}`
+    return `${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${moeda}`
+  }
+
+  function formatarMoeda(valor: number, moeda: string) {
+    if (moeda === 'KRW') return `${Math.round(valor).toLocaleString('pt-BR')} ${moeda}`
+    return `${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${moeda}`
   }
 
   async function registrarCaixa() {
@@ -82,7 +89,7 @@ export function ServicosCliente({ caixas, servicos, precos }: { caixas: Caixa[];
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Não foi possível registrar')
       const caixaCriada = await res.json() as { id: string }
-      toast.success(fotoEtiquetaUrl ? 'Caixa registrada e recebimento confirmado' : 'Caixa registrada! A equipe será avisada.')
+      toast.success('Caixa registrada! Aguardando recebimento no armazém.')
       setNovaCaixa({ tracking: '', lojaOrigem: '', observacoes: '' })
       setComprovante(null)
       setEtiqueta(null)
@@ -113,6 +120,25 @@ export function ServicosCliente({ caixas, servicos, precos }: { caixas: Caixa[];
 
   return (
     <div className="space-y-6">
+      {typeof totalPendente === 'number' && (
+        <div className="rounded-xl p-4 flex items-center justify-between" style={{ background: totalPendente > 0 ? '#FEF3C7' : '#F0FDF4', border: `1px solid ${totalPendente > 0 ? '#FDE68A' : '#BBF7D0'}` }}>
+          <div>
+            <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: totalPendente > 0 ? '#92400E' : '#166534' }}>
+              {totalPendente > 0 ? '🧾 Caixinha — serviços pendentes' : '✅ Nenhuma pendência'}
+            </p>
+            <p className="text-xs mt-1" style={{ color: totalPendente > 0 ? '#78350F' : '#16A34A' }}>
+              {totalPendente > 0 ? `Acumulado de serviços solicitados — pague tudo de uma vez ou junto com o frete` : 'Você está em dia. Pode solicitar envio normalmente.'}
+            </p>
+          </div>
+          <p className="text-lg font-bold" style={{ color: totalPendente > 0 ? '#92400E' : '#166534' }}>{formatarMoeda(totalPendente, moedaTotal || precos.moeda)}</p>
+        </div>
+      )}
+      {typeof totalPendente === 'number' && totalPendente > 0 && (
+        <div className="rounded-lg p-3 text-xs" style={{ background: '#FFF1F5', border: '1px solid #FECDD3', color: '#9F1239' }}>
+          ⚠️ Enquanto houver pendência, você <strong>não poderá solicitar envio</strong> da caixa com pendência. Regularize em <strong>Financeiro</strong> ou pague junto com o frete.
+        </div>
+      )}
+
       <div className="bg-white border border-gray-100 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold" style={{ color: '#1A1A2E' }}>Solicitar serviço</h2>

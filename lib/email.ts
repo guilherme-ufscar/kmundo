@@ -421,7 +421,7 @@ export async function notificarAdminClienteConfirmou(params: {
   })
 }
 
-// ─── Caixa: cliente registrou → admin ─────────────────────────────────────────
+  // ─── Caixa: cliente registrou → admin ─────────────────────────────────────────
 
 export async function notificarAdminNovaCaixa(params: {
   nomeCliente: string
@@ -444,7 +444,7 @@ export async function notificarAdminNovaCaixa(params: {
           ${infoRow('Suite', `#${String(suite).padStart(3, '0')}`)}
           ${infoRow('Tracking', `<span style="font-family:monospace;">${tracking}</span>`)}
           ${lojaOrigem ? infoRow('Loja de origem', lojaOrigem) : ''}
-          ${infoRow('Status', badge('Aguardando chegada', '#F59E0B'))}
+          ${infoRow('Status', badge('A caminho', '#92400E'))}
         </table>
       </div>
       ${btnPink(`${BASE_URL}/admin/operacional`, 'Ver caixas no painel')}
@@ -460,8 +460,9 @@ export async function notificarClienteCaixaRecebida(params: {
   suite: number
   tracking: string
   caixaId: string
+  fotoEtiquetaUrl?: string | null
 }) {
-  const { emailCliente, nomeCliente, suite, tracking } = params
+  const { emailCliente, nomeCliente, suite, tracking, fotoEtiquetaUrl } = params
   await getResend().emails.send({
     from: FROM,
     to: emailCliente,
@@ -476,8 +477,36 @@ export async function notificarClienteCaixaRecebida(params: {
           ${infoRow('Status', badge('Recebida no armazém', '#22C55E'))}
         </table>
       </div>
+      ${fotoEtiquetaUrl ? `<div style="text-align:center;margin:0 0 24px;"><p style="color:#6B7280;font-size:13px;margin:0 0 8px;">Foto da etiqueta:</p><a href="${BASE_URL}/tracking"><img src="${fotoEtiquetaUrl}" alt="Foto da etiqueta" style="max-width:300px;width:100%;border-radius:12px;border:1px solid #E5E7EB;" /></a></div>` : ''}
       <p style="color:#6B7280;margin:0 0 24px;">Você já pode solicitar serviços (foto/vídeo da abertura, pesagem etc.) para esta caixa.</p>
       ${btnPink(`${BASE_URL}/tracking`, 'Acompanhar minhas caixas')}
     `),
   })
+}
+
+// ─── Atualização/Informação → todos os clientes ───────────────────────────────
+export async function enviarEmailAtualizacao(params: {
+  titulo: string
+  conteudo: string
+  id: string
+}) {
+  const { titulo, conteudo, id } = params
+  const clientes = await (await import('@/lib/prisma')).prisma.cliente.findMany({
+    include: { usuario: { select: { email: true } } },
+  })
+  const emails = clientes.map(c => c.usuario.email).filter(Boolean)
+  if (emails.length === 0) return
+  const html = layout(`
+      <h2 style="color:#1A1A2E;margin:0 0 12px;">${titulo}</h2>
+      <div style="color:#374151;line-height:1.7;margin:0 0 24px;" class="termos-content">${conteudo}</div>
+      <p style="color:#6B7280;font-size:13px;margin:0 0 24px;">Esta atualização também está disponível na sua área de <strong>Informações</strong> dentro da plataforma.</p>
+      ${btnPink(`${BASE_URL}/informacoes/${id}`, 'Ver atualização')}
+      <p style="color:#9CA3AF;font-size:12px;margin:16px 0 0;">Por favor, acesse e clique em “Confirmo que li esta atualização” para registrar sua leitura.</p>
+    `)
+  await getResend().emails.send({
+    from: FROM,
+    to: emails,
+    subject: `📢 ${titulo} — KMundo Warehouse`,
+    html,
+  } as never)
 }

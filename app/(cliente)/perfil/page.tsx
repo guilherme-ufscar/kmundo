@@ -36,6 +36,7 @@ export default async function PerfilPage() {
         clienteId={cliente.id}
         defaultValues={{
           nomeCompleto: cliente.nomeCompleto,
+          documento: cliente.documento ?? '',
           telefone: cliente.telefone,
           pais: cliente.pais,
           endereco: cliente.endereco ?? '',

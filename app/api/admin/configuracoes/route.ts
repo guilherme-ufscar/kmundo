@@ -18,6 +18,10 @@ const configSchema = z.object({
   chavePix: z.string().optional().nullable(),
   qrCodePix: z.string().optional().nullable(),
   instrucoesPix: z.string().optional().nullable(),
+  wiseLink: z.string().optional().nullable(),
+  koreanBankName: z.string().optional().nullable(),
+  koreanBankAccount: z.string().optional().nullable(),
+  koreanBankHolder: z.string().optional().nullable(),
 })
 
 export async function GET() {

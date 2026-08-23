@@ -9,21 +9,27 @@ export default async function TrackingPage() {
   const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session.user) })
   if (!cliente) return null
 
-  const caixas = await prisma.caixaRecebida.findMany({
-    where: { clienteId: cliente.id },
-    select: {
-      id: true,
-      tracking: true,
-      lojaOrigem: true,
-      observacoes: true,
-      comprovanteCompraUrl: true,
-      fotoEtiquetaUrl: true,
-      status: true,
-      recebidoEm: true,
-      criadoEm: true,
-    },
-    orderBy: { criadoEm: 'desc' },
-  })
+  const [caixas, servicos] = await Promise.all([
+    prisma.caixaRecebida.findMany({
+      where: { clienteId: cliente.id },
+      select: {
+        id: true,
+        tracking: true,
+        lojaOrigem: true,
+        observacoes: true,
+        comprovanteCompraUrl: true,
+        fotoEtiquetaUrl: true,
+        status: true,
+        recebidoEm: true,
+        criadoEm: true,
+      },
+      orderBy: { criadoEm: 'desc' },
+    }),
+    prisma.solicitacaoServico.findMany({
+      where: { clienteId: cliente.id, status: 'CONCLUIDO' },
+      select: { caixaId: true, tipo: true },
+    }),
+  ])
 
   return (
     <div className="p-4 sm:p-8 max-w-4xl">
@@ -31,7 +37,7 @@ export default async function TrackingPage() {
         <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Tracking</h1>
         <p className="text-sm" style={{ color: '#6B7280' }}>Registre suas encomendas e acompanhe quando elas chegarem ao armazém.</p>
       </div>
-      <TrackingCliente caixas={caixas} />
+      <TrackingCliente caixas={caixas} servicos={servicos as never} />
     </div>
   )
 }

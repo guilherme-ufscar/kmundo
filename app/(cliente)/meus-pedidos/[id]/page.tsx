@@ -4,18 +4,22 @@ import { clienteWhereFromSession } from '@/lib/cliente-session'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
+import { PedidoComprovanteUpload } from '@/components/cliente/PedidoComprovanteUpload'
+
+export const dynamic = 'force-dynamic'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_REVISAO: 'Aguardando revisão',
   AGUARDANDO_PAGAMENTO: 'Aguardando pagamento',
+  AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
   PAGO: 'Pago',
   COMPRADO: 'Comprado',
   CANCELADO: 'Cancelado',
 }
-
 const statusColors: Record<string, string> = {
   AGUARDANDO_REVISAO: '#F59E0B',
   AGUARDANDO_PAGAMENTO: '#8B5CF6',
+  AGUARDANDO_CONFIRMACAO: '#F97316',
   PAGO: '#3B82F6',
   COMPRADO: '#22C55E',
   CANCELADO: '#EF4444',
@@ -26,16 +30,14 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
   const cliente = await prisma.cliente.findFirst({ where: clienteWhereFromSession(session!.user!) })
   if (!cliente) notFound()
 
-  const pedido = await prisma.pedidoCompra.findFirst({
-    where: { id: params.id, clienteId: cliente.id },
-    include: { itens: true },
-  })
+  const [pedido, pedidoConfig] = await Promise.all([
+    prisma.pedidoCompra.findFirst({ where: { id: params.id, clienteId: cliente.id }, include: { itens: true } }),
+    prisma.pedidoConfig.findFirst(),
+  ])
 
   if (!pedido) notFound()
 
-  const whatsappHref = pedido.whatsappRecepcao
-    ? `https://wa.me/${pedido.whatsappRecepcao.replace(/\D/g, '')}`
-    : null
+  const whatsappHref = pedido.whatsappRecepcao ? `https://wa.me/${pedido.whatsappRecepcao.replace(/\D/g, '')}` : null
 
   return (
     <div className="p-4 sm:p-8 max-w-4xl">
@@ -49,15 +51,15 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
           <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Pedido de compra</h1>
           <p style={{ color: '#6B7280' }}>Criado em {new Date(pedido.criadoEm).toLocaleDateString('pt-BR')}</p>
         </div>
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[pedido.status] }}>
-          {statusLabel[pedido.status]}
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[pedido.status] ?? '#6B7280' }}>
+          {statusLabel[pedido.status] ?? pedido.status}
         </span>
       </div>
 
       <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Itens do pedido</h2>
         <div className="space-y-3">
-          {pedido.itens.map((item) => (
+          {pedido.itens.map(item => (
             <div key={item.id} className="rounded-xl p-4" style={{ background: '#F9FAFB' }}>
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FFF1F5' }}>
@@ -66,11 +68,7 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm" style={{ color: '#1A1A2E' }}>{item.nomeProduto}</p>
                   <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>Quantidade: {item.quantidade}{item.variacao ? ` · ${item.variacao}` : ''}</p>
-                  {item.urlProduto && (
-                    <a href={item.urlProduto} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block hover:underline" style={{ color: '#FF6B9D' }}>
-                      Abrir link do produto
-                    </a>
-                  )}
+                  {item.urlProduto && <a href={item.urlProduto} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block hover:underline" style={{ color: '#FF6B9D' }}>Abrir link do produto</a>}
                   {item.observacoes && <p className="text-sm mt-2" style={{ color: '#6B7280' }}>{item.observacoes}</p>}
                 </div>
               </div>
@@ -82,16 +80,8 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
       {(pedido.valorTotal || pedido.chavePix || pedido.qrCodePix || pedido.linkCartao || pedido.whatsappRecepcao) && (
         <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Pagamento</h2>
-          {pedido.valorTotal && (
-            <p className="text-lg font-bold mb-4" style={{ color: '#FF6B9D' }}>
-              {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} {pedido.moeda}
-            </p>
-          )}
-          {pedido.dataLimitePagamento && (
-            <p className="text-sm mb-4" style={{ color: '#EF4444' }}>
-              Data limite: {new Date(pedido.dataLimitePagamento).toLocaleDateString('pt-BR')}
-            </p>
-          )}
+          {pedido.valorTotal && <p className="text-lg font-bold mb-4" style={{ color: '#FF6B9D' }}>{pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} {pedido.moeda}</p>}
+          {pedido.dataLimitePagamento && <p className="text-sm mb-4" style={{ color: '#EF4444' }}>Data limite: {new Date(pedido.dataLimitePagamento).toLocaleDateString('pt-BR')}</p>}
           {pedido.qrCodePix && (
             <div className="mb-4">
               <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>QR Code Pix</p>
@@ -115,8 +105,21 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
         </div>
       )}
 
+      <PedidoComprovanteUpload pedidoId={pedido.id} status={pedido.status} comprovantePagamentoUrl={pedido.comprovantePagamentoUrl ?? null} />
+
+      {pedido.comprovanteCompraUrl && (
+        <div className="bg-white rounded-2xl p-6 mt-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <h3 className="font-semibold mb-2" style={{ color: '#1A1A2E' }}>Comprovante da compra</h3>
+          <a href={pedido.comprovanteCompraUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline" style={{ color: '#FF6B9D' }}>Ver comprovante da compra</a>
+          {pedido.comprovanteCompraUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i) && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pedido.comprovanteCompraUrl} alt="Comprovante compra" className="mt-3 w-full max-w-sm rounded-xl border" style={{ borderColor: '#E5E7EB' }} />
+          )}
+        </div>
+      )}
+
       {(pedido.observacoesCliente || pedido.observacoesAdmin) && (
-        <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl p-6 mt-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Observações</h2>
           {pedido.observacoesCliente && (
             <div className="mb-4">
@@ -130,6 +133,24 @@ export default async function PedidoDetalhePage({ params }: { params: { id: stri
               <p className="text-sm" style={{ color: '#374151' }}>{pedido.observacoesAdmin}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {pedidoConfig && (
+        <div className="mt-8 space-y-4">
+          {[
+            { html: pedidoConfig.comoFuncionaHtml, titulo: 'Como funciona' },
+            { html: pedidoConfig.etapasHtml, titulo: 'Etapas do pedido' },
+            { html: pedidoConfig.regrasHtml, titulo: 'Regras importantes' },
+          ].filter(s => s.html).map((s, i) => (
+            <details key={i} className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <summary className="list-none flex items-center justify-between p-5 cursor-pointer">
+                <h3 className="font-semibold" style={{ color: '#1A1A2E' }}>{s.titulo}</h3>
+                <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: '#FFF1F5', color: '#FF6B9D' }}>+</span>
+              </summary>
+              <div className="px-5 pb-5 termos-content" dangerouslySetInnerHTML={{ __html: s.html! }} />
+            </details>
+          ))}
         </div>
       )}
     </div>

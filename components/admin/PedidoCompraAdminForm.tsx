@@ -21,6 +21,9 @@ interface Props {
     observacoesAdmin: string | null
     dataLimitePagamento: string | null
     formaPagamentoCliente: string | null
+    comprovanteCompraUrl?: string | null
+    comprovantePagamentoUrl?: string | null
+    comprovanteEnviadoEm?: string | null
   }
   config: {
     chavePix: string | null
@@ -33,6 +36,7 @@ interface Props {
 const statusOpcoes = [
   { value: 'AGUARDANDO_REVISAO', label: 'Aguardando revisão' },
   { value: 'AGUARDANDO_PAGAMENTO', label: 'Aguardando pagamento' },
+  { value: 'AGUARDANDO_CONFIRMACAO', label: 'Aguardando confirmação' },
   { value: 'PAGO', label: 'Pago' },
   { value: 'COMPRADO', label: 'Comprado' },
   { value: 'CANCELADO', label: 'Cancelado' },
@@ -170,6 +174,51 @@ export function PedidoCompraAdminForm({ pedido, config }: Props) {
           <div>
             <Label className="text-sm font-medium" style={{ color: '#374151' }}>Observações internas</Label>
             <textarea value={observacoesAdmin} onChange={(e) => setObservacoesAdmin(e.target.value)} rows={4} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1.5 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ borderRadius: '8px' }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Comprovantes</h2>
+        <div className="space-y-5">
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Comprovante de pagamento (enviado pelo cliente)</Label>
+            {pedido.comprovantePagamentoUrl ? (
+              <div className="mt-2 space-y-2">
+                <a href={pedido.comprovantePagamentoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium hover:underline" style={{ color: '#FF6B9D' }}>Ver comprovante</a>
+                <p className="text-xs" style={{ color: '#9CA3AF' }}>Enviado em {pedido.comprovanteEnviadoEm ? new Date(pedido.comprovanteEnviadoEm).toLocaleString('pt-BR') : '—'}</p>
+                {pedido.status === 'AGUARDANDO_CONFIRMACAO' && (
+                  <button type="button" onClick={async () => { const res = await fetch(`/api/pedidos/${pedido.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'PAGO' }) }); if (res.ok) { toast.success('Pagamento confirmado! Status alterado para Pago.'); router.refresh() } else toast.error('Erro ao confirmar') }} className="mt-2 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: '#22C55E' }}>Confirmar pagamento → Pago</button>
+                )}
+                {pedido.comprovantePagamentoUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i) && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={pedido.comprovantePagamentoUrl} alt="Comprovante pagamento" className="mt-2 w-full max-w-sm rounded-xl border" style={{ borderColor: '#E5E7EB' }} />
+                )}
+              </div>
+            ) : (
+              <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>Nenhum comprovante enviado ainda.</p>
+            )}
+            <div className="mt-3 flex items-center gap-2">
+              <input type="file" accept="image/*,application/pdf" onChange={async e => { const f = e.target.files?.[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); fd.append('tipo', 'pagamento'); const res = await fetch(`/api/pedidos/${pedido.id}/comprovante`, { method: 'POST', body: fd }); if (res.ok) { const j = await res.json(); toast.success(j.message); router.refresh() } else { const j = await res.json().catch(() => ({})); toast.error(j.error ?? 'Erro ao enviar') } e.target.value = '' }} className="text-sm" />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t" style={{ borderColor: '#F3F4F6' }}>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Comprovante da compra (você anexa após comprar)</Label>
+            {pedido.comprovanteCompraUrl ? (
+              <div className="mt-2">
+                <a href={pedido.comprovanteCompraUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline" style={{ color: '#FF6B9D' }}>Ver comprovante da compra</a>
+                {pedido.comprovanteCompraUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i) && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={pedido.comprovanteCompraUrl} alt="Comprovante compra" className="mt-2 w-full max-w-sm rounded-xl border" style={{ borderColor: '#E5E7EB' }} />
+                )}
+              </div>
+            ) : (
+              <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>Nenhum comprovante de compra anexado.</p>
+            )}
+            <div className="mt-3 flex items-center gap-2">
+              <input type="file" accept="image/*,application/pdf" onChange={async e => { const f = e.target.files?.[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); fd.append('tipo', 'compra'); const res = await fetch(`/api/pedidos/${pedido.id}/comprovante`, { method: 'POST', body: fd }); if (res.ok) { toast.success('Comprovante de compra salvo'); router.refresh() } else { const j = await res.json().catch(() => ({})); toast.error(j.error ?? 'Erro') } e.target.value = '' }} className="text-sm" />
+            </div>
           </div>
         </div>
       </div>

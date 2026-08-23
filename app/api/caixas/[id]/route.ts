@@ -41,6 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       suite: caixa.cliente.numeroDeSuite,
       tracking: caixa.tracking,
       caixaId: caixa.id,
+      fotoEtiquetaUrl: parsed.data.fotoEtiquetaUrl,
     }).catch(console.error)
   }
 

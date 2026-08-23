@@ -6,7 +6,6 @@ import { ArrowLeft, Package, Check } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 type MetodoEnvio = 'EMS' | 'ENVIO_EM_GRUPO'
 
@@ -27,23 +26,27 @@ export default function NovoEnvioPage() {
   const [metodo, setMetodo] = useState<MetodoEnvio | null>(null)
   const [itensDisponiveis, setItensDisponiveis] = useState<ItemDisponivel[]>([])
   const [itensSelecionados, setItensSelecionados] = useState<Set<string>>(new Set())
-  const [valorDeclarado, setValorDeclarado] = useState('')
-  const [declaracaoConteudo, setDeclaracaoConteudo] = useState('')
+  const [valorDeclaradoTexto, setValorDeclaradoTexto] = useState('')
+  const [enderecoCompleto, setEnderecoCompleto] = useState('')
+  const [usarEnderecoCoreano, setUsarEnderecoCoreano] = useState(false)
+  const [enderecoCoreano, setEnderecoCoreano] = useState('')
+  const [telefoneCoreano, setTelefoneCoreano] = useState('')
   const [aceitouTermos, setAceitouTermos] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [error, setError] = useState('')
+  const [config, setConfig] = useState<{ avisoValorDeclaradoHtml?: string | null; avisoEnderecoHtml?: string | null; avisoEnderecoCoreanoHtml?: string | null } | null>(null)
 
   useEffect(() => {
     async function carregar() {
       try {
-        const res = await fetch('/api/itens?status=RECEBIDO&limite=100')
-        const data = await res.json()
-        const resArmazem = await fetch('/api/itens?status=EM_ARMAZEM&limite=100')
-        const dataArmazem = await resArmazem.json()
-        const resNoArmazem = await fetch('/api/itens?status=EM_ENVIO&limite=100')
-        const dataNoArmazem = await resNoArmazem.json()
-        setItensDisponiveis([...(data.itens ?? []), ...(dataArmazem.itens ?? []), ...(dataNoArmazem.itens ?? [])])
+        const [r1, r2, r3] = await Promise.all([
+          fetch('/api/itens?status=RECEBIDO&limite=100').then(r => r.json()),
+          fetch('/api/itens?status=EM_ARMAZEM&limite=100').then(r => r.json()),
+          fetch('/api/itens?status=EM_ENVIO&limite=100').then(r => r.json()),
+        ])
+        setItensDisponiveis([...(r1.itens ?? []), ...(r2.itens ?? []), ...(r3.itens ?? [])])
+        fetch('/api/envios/config').then(r => r.json()).then(c => setConfig(c)).catch(() => {})
       } catch {
         setError('Erro ao carregar itens')
       } finally {
@@ -54,7 +57,7 @@ export default function NovoEnvioPage() {
   }, [])
 
   function toggleItem(id: string) {
-    setItensSelecionados((prev) => {
+    setItensSelecionados(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -65,20 +68,25 @@ export default function NovoEnvioPage() {
   async function handleSubmit() {
     if (!metodo) { setError('Selecione o método de envio'); return }
     if (itensSelecionados.size === 0) { setError('Selecione ao menos um item'); return }
+    if (!enderecoCompleto.trim() || enderecoCompleto.trim().length < 10) { setError('Endereço completo de envio é obrigatório'); return }
+    if (metodo !== 'ENVIO_EM_GRUPO' && valorDeclaradoTexto.trim().length < 3) { setError('Valor declarado é obrigatório para envios individuais'); return }
+    if (usarEnderecoCoreano && (!enderecoCoreano.trim() || enderecoCoreano.trim().length < 5)) { setError('Informe o endereço coreano completo'); return }
+    if (usarEnderecoCoreano && (!telefoneCoreano.trim() || telefoneCoreano.trim().length < 5)) { setError('Informe o telefone do responsável (endereço coreano)'); return }
     if (!aceitouTermos) { setError('Você deve aceitar os Termos de Uso para continuar'); return }
 
-    if (metodo !== 'ENVIO_EM_GRUPO' && declaracaoConteudo.trim().length < 3) { setError('Informe a declaração de conteúdo para envios individuais'); return }
     setSalvando(true)
     setError('')
     try {
       const body: Record<string, unknown> = {
         metodoEnvio: metodo,
         itemIds: Array.from(itensSelecionados),
+        valorDeclaradoTexto: valorDeclaradoTexto.trim() || null,
+        enderecoCompleto: enderecoCompleto.trim(),
+        usarEnderecoCoreano,
+        enderecoCoreano: usarEnderecoCoreano ? enderecoCoreano.trim() : null,
+        telefoneCoreano: usarEnderecoCoreano ? telefoneCoreano.trim() : null,
+        aceitouTermos: true,
       }
-      if (valorDeclarado && metodo !== 'ENVIO_EM_GRUPO') {
-        body.valorDeclarado = parseFloat(valorDeclarado)
-      }
-      if (metodo !== 'ENVIO_EM_GRUPO') body.declaracaoConteudo = declaracaoConteudo.trim()
 
       const res = await fetch('/api/envios', {
         method: 'POST',
@@ -88,11 +96,12 @@ export default function NovoEnvioPage() {
 
       if (res.ok) {
         const data = await res.json()
-        toast.success('Envio solicitado com sucesso!')
+        toast.success('Envio solicitado com sucesso! Status: Aguardando confirmação')
         router.push(`/meus-envios/${data.id}`)
       } else {
         const json = await res.json()
-        setError(json.error ?? 'Erro ao solicitar envio')
+        const msg = json.error?.valorDeclaradoTexto?._errors?.[0] ?? json.error?.enderecoCompleto?._errors?.[0] ?? json.error ?? 'Erro ao solicitar envio'
+        setError(typeof msg === 'string' ? msg : JSON.stringify(msg))
       }
     } catch {
       setError('Erro de conexão')
@@ -100,6 +109,8 @@ export default function NovoEnvioPage() {
       setSalvando(false)
     }
   }
+
+  const podeEnviar = metodo && itensSelecionados.size > 0 && aceitouTermos && enderecoCompleto.trim().length >= 10 && (metodo === 'ENVIO_EM_GRUPO' || valorDeclaradoTexto.trim().length >= 3) && (!usarEnderecoCoreano || (enderecoCoreano.trim().length >= 5 && telefoneCoreano.trim().length >= 5))
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl">
@@ -111,7 +122,7 @@ export default function NovoEnvioPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Solicitar Envio</h1>
-          <p style={{ color: '#6B7280' }}>Escolha o método e os itens para enviar</p>
+          <p style={{ color: '#6B7280' }}>Preencha todos os campos obrigatórios para enviar</p>
         </div>
       </div>
 
@@ -123,24 +134,13 @@ export default function NovoEnvioPage() {
 
       {/* Método de envio */}
       <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Método de Envio</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {metodos.map((m) => {
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Método de Envio *</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {metodos.map(m => {
             const ativo = metodo === m.value
             return (
-              <button
-                key={m.value}
-                type="button"
-                onClick={() => setMetodo(m.value)}
-                className="p-4 rounded-xl border-2 text-left transition-all"
-                style={{
-                  borderColor: ativo ? '#FF6B9D' : '#E5E7EB',
-                  background: ativo ? '#FFF1F5' : 'white',
-                }}
-              >
-                <p className="font-semibold text-sm mb-1" style={{ color: ativo ? '#FF6B9D' : '#1A1A2E' }}>
-                  {m.label}
-                </p>
+              <button key={m.value} type="button" onClick={() => setMetodo(m.value)} className="p-4 rounded-xl border-2 text-left transition-all" style={{ borderColor: ativo ? '#FF6B9D' : '#E5E7EB', background: ativo ? '#FFF1F5' : 'white' }}>
+                <p className="font-semibold text-sm mb-1" style={{ color: ativo ? '#FF6B9D' : '#1A1A2E' }}>{m.label}</p>
                 <p className="text-xs" style={{ color: '#9CA3AF' }}>{m.desc}</p>
               </button>
             )
@@ -150,42 +150,25 @@ export default function NovoEnvioPage() {
 
       {/* Itens */}
       <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Selecionar Itens</h2>
-
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Selecionar Itens *</h2>
         {carregando ? (
           <p className="text-sm text-center py-6" style={{ color: '#9CA3AF' }}>Carregando itens...</p>
         ) : itensDisponiveis.length === 0 ? (
           <p className="text-sm text-center py-6" style={{ color: '#9CA3AF' }}>Nenhum item disponível para envio</p>
         ) : (
           <div className="space-y-2">
-            {itensDisponiveis.map((item) => {
+            {itensDisponiveis.map(item => {
               const sel = itensSelecionados.has(item.id)
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => toggleItem(item.id)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left"
-                  style={{
-                    borderColor: sel ? '#FF6B9D' : '#E5E7EB',
-                    background: sel ? '#FFF1F5' : 'white',
-                  }}
-                >
-                  <div
-                    className="w-5 h-5 rounded flex items-center justify-center border-2 shrink-0"
-                    style={{ borderColor: sel ? '#FF6B9D' : '#D1D5DB', background: sel ? '#FF6B9D' : 'white' }}
-                  >
+                <button key={item.id} type="button" onClick={() => toggleItem(item.id)} className="w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left" style={{ borderColor: sel ? '#FF6B9D' : '#E5E7EB', background: sel ? '#FFF1F5' : 'white' }}>
+                  <div className="w-5 h-5 rounded flex items-center justify-center border-2 shrink-0" style={{ borderColor: sel ? '#FF6B9D' : '#D1D5DB', background: sel ? '#FF6B9D' : 'white' }}>
                     {sel && <Check className="w-3 h-3 text-white" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{item.descricao}</p>
-                    {item.lojaOrigem && (
-                      <p className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem}</p>
-                    )}
+                    {item.lojaOrigem && <p className="text-xs" style={{ color: '#9CA3AF' }}>{item.lojaOrigem}</p>}
                   </div>
-                  <div className="flex items-center">
-                    <Package className="w-4 h-4" style={{ color: '#D1D5DB' }} />
-                  </div>
+                  <Package className="w-4 h-4" style={{ color: '#D1D5DB' }} />
                 </button>
               )
             })}
@@ -193,75 +176,72 @@ export default function NovoEnvioPage() {
         )}
       </div>
 
-      {/* Valor declarado — apenas FedEx e EMS */}
-      {metodo && metodo !== 'ENVIO_EM_GRUPO' && (
-        <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h2 className="font-semibold mb-1" style={{ color: '#1A1A2E' }}>Valor Declarado (opcional)</h2>
-          <p className="text-xs mb-4" style={{ color: '#9CA3AF' }}>
-            Você pode informar o valor ou deixar para a administradora preencher
-          </p>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="Ex: 50000"
-              value={valorDeclarado}
-              onChange={(e) => setValorDeclarado(e.target.value)}
-              className="h-11 flex-1"
-              style={{ borderRadius: '8px' }}
-            />
-            <span className="text-sm font-medium px-3" style={{ color: '#6B7280' }}>BRL</span>
+      {/* Valor Declarado */}
+      <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <label className="font-semibold block mb-1" style={{ color: '#1A1A2E' }}>Valor declarado / Declaração de conteúdo {metodo !== 'ENVIO_EM_GRUPO' && <span style={{ color: '#EF4444' }}>*</span>}</label>
+        <p className="text-xs mb-2" style={{ color: '#6B7280' }}>Nome do item + valor declarado em dólar. Ex:</p>
+        <div className="rounded-lg p-3 mb-3 text-xs font-mono" style={{ background: '#F9FAFB', color: '#374151', border: '1px solid #E5E7EB' }}>
+          Álbum BTS — US$ 25<br />Photocard — US$ 10
+        </div>
+        <textarea value={valorDeclaradoTexto} onChange={e => setValorDeclaradoTexto(e.target.value)} rows={4} className="w-full rounded-xl border p-3 text-sm" style={{ borderColor: '#E5E7EB' }} placeholder="Álbum BTS — US$ 25&#10;Photocard — US$ 10" />
+        <p className="text-xs mt-2" style={{ color: metodo !== 'ENVIO_EM_GRUPO' ? '#EF4444' : '#9CA3AF' }}>
+          Importante: o preenchimento do valor declarado é obrigatório para envios individuais. Em envios em grupo, o preenchimento do valor declarado não é obrigatório.
+        </p>
+        <div className="mt-3 rounded-xl p-3 text-xs leading-relaxed" style={{ background: '#FFF7ED', border: '1px solid #FFEDD5', color: '#9A3412' }}>
+          O cliente deve informar corretamente o nome do item conforme deseja que ele seja declarado na etiqueta, juntamente com o valor declarado em dólar. A K-Mundo Warehouse não se responsabiliza pelos valores ou informações escolhidos pelo cliente. As informações serão adicionadas conforme foram preenchidas pelo próprio cliente. Caso exista alguma impossibilidade de utilizar exatamente o nome informado na etiqueta, entraremos em contato para orientá-lo.
+        </div>
+        {config?.avisoValorDeclaradoHtml && <div className="mt-3 termos-content text-xs" dangerouslySetInnerHTML={{ __html: config.avisoValorDeclaradoHtml }} />}
+      </div>
+
+      {/* Endereço completo */}
+      <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <label className="font-semibold block mb-1" style={{ color: '#1A1A2E' }}>Endereço completo de envio *</label>
+        <textarea value={enderecoCompleto} onChange={e => setEnderecoCompleto(e.target.value)} rows={4} className="w-full rounded-xl border p-3 text-sm" style={{ borderColor: '#E5E7EB' }} placeholder="Rua, número, complemento, cidade, estado, país, CEP, e-mail, telefone..." />
+        <div className="mt-2 rounded-xl p-3 text-xs leading-relaxed" style={{ background: '#FFF1F5', border: '1px solid #FFE4E6', color: '#9F1239' }}>
+          Endereço completo de envio — obrigatório: informe todos os dados necessários para a entrega, incluindo endereço completo, número da residência ou apartamento, cidade, estado, país, e-mail, telefone e quaisquer outras informações necessárias para a entrega. Confira cuidadosamente os dados antes de enviar a solicitação.
+        </div>
+        {config?.avisoEnderecoHtml && <div className="mt-3 termos-content text-xs" dangerouslySetInnerHTML={{ __html: config.avisoEnderecoHtml }} />}
+      </div>
+
+      {/* Endereço coreano */}
+      <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={usarEnderecoCoreano} onChange={e => setUsarEnderecoCoreano(e.target.checked)} className="w-4 h-4 rounded border-gray-300 accent-pink-500" />
+          <span className="font-semibold text-sm" style={{ color: '#1A1A2E' }}>Utilizar endereço coreano de terceiros</span>
+        </label>
+        {usarEnderecoCoreano && (
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium block mb-1" style={{ color: '#374151' }}>Endereço completo em coreano *</label>
+              <textarea value={enderecoCoreano} onChange={e => setEnderecoCoreano(e.target.value)} rows={3} className="w-full rounded-xl border p-3 text-sm" style={{ borderColor: '#E5E7EB' }} placeholder="주소 전체를 한국어로 입력하세요" />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1" style={{ color: '#374151' }}>Telefone da pessoa responsável *</label>
+              <input value={telefoneCoreano} onChange={e => setTelefoneCoreano(e.target.value)} placeholder="010-xxxx-xxxx" className="w-full h-11 rounded-xl border px-3 text-sm" style={{ borderColor: '#E5E7EB' }} />
+            </div>
+            <div className="rounded-xl p-3 text-xs leading-relaxed" style={{ background: '#FEFCE8', border: '1px solid #FEF08A', color: '#854D0E' }}>
+              Importante: se você estiver utilizando um endereço coreano de terceiros, é obrigatório informar o endereço completo em coreano e o número de telefone da pessoa responsável pelo recebimento. Confira todas as informações antes de solicitar o envio.
+            </div>
+            {config?.avisoEnderecoCoreanoHtml && <div className="termos-content text-xs" dangerouslySetInnerHTML={{ __html: config.avisoEnderecoCoreanoHtml }} />}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {metodo && metodo !== 'ENVIO_EM_GRUPO' && (
-        <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <label className="font-semibold block mb-1" style={{ color: '#1A1A2E' }}>Declaração de conteúdo *</label>
-          <p className="text-xs mb-3" style={{ color: '#9CA3AF' }}>Descreva de forma objetiva os produtos enviados.</p>
-          <textarea value={declaracaoConteudo} onChange={(e) => setDeclaracaoConteudo(e.target.value)} rows={3} className="w-full rounded-lg border p-3 text-sm" style={{ borderColor: '#E5E7EB' }} placeholder="Ex.: roupas, cosméticos e acessórios" />
-        </div>
-      )}
-
-      {/* Termos de Uso */}
+      {/* Termos */}
       <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={aceitouTermos}
-            onChange={(e) => {
-              setAceitouTermos(e.target.checked)
-              if (e.target.checked) setError('')
-            }}
-            className="mt-0.5 w-4 h-4 rounded border-gray-300 cursor-pointer accent-pink-500 flex-shrink-0"
-          />
+          <input type="checkbox" checked={aceitouTermos} onChange={e => { setAceitouTermos(e.target.checked); if (e.target.checked) setError('') }} className="mt-0.5 w-4 h-4 rounded border-gray-300 accent-pink-500 flex-shrink-0" />
           <span className="text-sm leading-relaxed" style={{ color: '#374151' }}>
-            Li e concordo com os{' '}
-            <Link
-              href="/termos"
-              target="_blank"
-              className="font-semibold underline hover:opacity-80 transition-opacity"
-              style={{ color: '#FF6B9D' }}
-            >
-              Termos de Uso e Condições do Serviço
-            </Link>
-            {' '}e estou ciente das condições desta solicitação de envio.
+            Li e concordo com os <Link href="/termos" target="_blank" className="font-semibold underline" style={{ color: '#FF6B9D' }}>Termos de Uso e Condições do Serviço</Link> e estou ciente das condições desta solicitação de envio. *
           </span>
         </label>
       </div>
 
-      <Button
-        type="button"
-        onClick={handleSubmit}
-        disabled={salvando || !metodo || itensSelecionados.size === 0 || !aceitouTermos || (metodo !== 'ENVIO_EM_GRUPO' && declaracaoConteudo.trim().length < 3)}
-        className="w-full h-12 font-semibold text-white rounded-xl"
-        style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '12px' }}
-      >
+      <Button type="button" onClick={handleSubmit} disabled={salvando || !podeEnviar} className="w-full h-12 font-semibold text-white rounded-xl disabled:opacity-50" style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '12px' }}>
         {salvando ? 'Solicitando...' : `Solicitar Envio (${itensSelecionados.size} ${itensSelecionados.size === 1 ? 'item' : 'itens'})`}
       </Button>
-
       <p className="text-xs text-center mt-3" style={{ color: '#9CA3AF' }}>
-        Após a solicitação, nossa equipe irá preparar e informar os detalhes do envio
+        Após a solicitação, o pedido ficará em <strong>Aguardando confirmação</strong>. Nossa equipe irá informar o valor do frete e as próximas etapas.
       </p>
     </div>
   )

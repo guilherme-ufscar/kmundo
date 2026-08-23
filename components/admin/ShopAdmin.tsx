@@ -2,9 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ImagePlus, Pencil, Save, ToggleLeft, ToggleRight, Trash2, Upload, X } from 'lucide-react'
+import { ImagePlus, Pencil, Save, ToggleLeft, ToggleRight, Trash2, Upload, X, Plus, Tag } from 'lucide-react'
 import { toast } from 'sonner'
-import { CATEGORIAS_SHOP } from '@/lib/shop-categorias'
 
 type Produto = {
   id: string
@@ -17,6 +16,13 @@ type Produto = {
   urlProduto: string | null
   ativo: boolean
   ordem: number
+}
+
+type Categoria = {
+  id: string
+  nome: string
+  ordem: number
+  ativo: boolean
 }
 
 type FormValues = {
@@ -45,12 +51,14 @@ function produtoParaForm(produto: Produto): FormValues {
   }
 }
 
-function ProdutoForm({ produto, onSucesso }: { produto: Produto | null; onSucesso: () => void }) {
+function ProdutoForm({ produto, categorias, onSucesso }: { produto: Produto | null; categorias: Categoria[]; onSucesso: () => void }) {
   const ehEdicao = produto !== null
   const [form, setForm] = useState<FormValues>(() => (produto ? produtoParaForm(produto) : formVazio))
   const [salvando, setSalvando] = useState(false)
   const [uploadingFoto, setUploadingFoto] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const categoriasAtivas = categorias.filter(c => c.ativo).sort((a, b) => a.ordem - b.ordem)
 
   async function enviarFoto(file: File) {
     const data = new FormData()
@@ -108,7 +116,7 @@ function ProdutoForm({ produto, onSucesso }: { produto: Produto | null; onSucess
         <input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Nome do produto" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
         <select value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} className="h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white">
           <option value="">Sem categoria</option>
-          {CATEGORIAS_SHOP.map(c => <option key={c} value={c}>{c}</option>)}
+          {categoriasAtivas.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
         </select>
         <input value={form.urlProduto} onChange={e => setForm(f => ({ ...f, urlProduto: e.target.value }))} placeholder="Link de referência ou compra" className="h-10 rounded-lg border border-gray-200 px-3 text-sm" />
         <div className="flex gap-2">
@@ -163,13 +171,144 @@ function ProdutoForm({ produto, onSucesso }: { produto: Produto | null; onSucess
   )
 }
 
-export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
+function CategoriasEditor({ categorias }: { categorias: Categoria[] }) {
+  const router = useRouter()
+  const [lista, setLista] = useState<Categoria[]>(categorias)
+  const [novoNome, setNovoNome] = useState('')
+  const [novaOrdem, setNovaOrdem] = useState('0')
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [editNome, setEditNome] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function criar() {
+    if (novoNome.trim().length < 2) return toast.error('Nome mínimo 2 caracteres')
+    setSaving(true)
+    const res = await fetch('/api/shop/categorias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: novoNome.trim(), ordem: Number(novaOrdem) || 0 }),
+    })
+    setSaving(false)
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}))
+      return toast.error(j.error ?? 'Erro ao criar')
+    }
+    const nova = await res.json() as Categoria
+    setLista(l => [...l, nova].sort((a, b) => a.ordem - b.ordem))
+    setNovoNome('')
+    setNovaOrdem('0')
+    toast.success('Categoria criada')
+    router.refresh()
+  }
+
+  async function salvarEdicao(cat: Categoria) {
+    if (editNome.trim().length < 2) return toast.error('Nome mínimo 2')
+    const res = await fetch(`/api/shop/categorias/${cat.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: editNome.trim() }),
+    })
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}))
+      return toast.error(j.error ?? 'Erro ao salvar')
+    }
+    const atual = await res.json() as Categoria
+    setLista(l => l.map(c => c.id === cat.id ? atual : c))
+    setEditandoId(null)
+    toast.success('Categoria atualizada — produtos vinculados renomeados')
+    router.refresh()
+  }
+
+  async function toggleAtivo(cat: Categoria) {
+    const res = await fetch(`/api/shop/categorias/${cat.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ativo: !cat.ativo }),
+    })
+    if (!res.ok) return toast.error('Erro ao alternar')
+    const atual = await res.json() as Categoria
+    setLista(l => l.map(c => c.id === cat.id ? atual : c))
+    toast.success(cat.ativo ? 'Categoria ocultada' : 'Categoria ativada')
+    router.refresh()
+  }
+
+  async function excluir(cat: Categoria) {
+    if (!confirm(`Excluir categoria "${cat.nome}"? Produtos com esta categoria ficarão sem categoria.`)) return
+    const res = await fetch(`/api/shop/categorias/${cat.id}`, { method: 'DELETE' })
+    if (!res.ok) return toast.error('Erro ao excluir')
+    setLista(l => l.filter(c => c.id !== cat.id))
+    toast.success('Categoria excluída')
+    router.refresh()
+  }
+
+  async function salvarOrdem(cat: Categoria, novaOrdemStr: string) {
+    const ordem = Number(novaOrdemStr)
+    if (isNaN(ordem)) return
+    const res = await fetch(`/api/shop/categorias/${cat.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ordem }),
+    })
+    if (res.ok) {
+      const atual = await res.json() as Categoria
+      setLista(l => l.map(c => c.id === cat.id ? atual : c).sort((a, b) => a.ordem - b.ordem))
+      router.refresh()
+    }
+  }
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-lg p-5">
+      <h2 className="font-semibold mb-1 flex items-center gap-2" style={{ color: '#1A1A2E' }}><Tag className="w-4 h-4" style={{ color: '#FF6B9D' }} /> Categorias — editável</h2>
+      <p className="text-xs mb-4" style={{ color: '#6B7280' }}>Ative/desative, renomeie ou crie novas. Desativadas somem da vitrine do cliente. “Itens usados” pode manter ativo.</p>
+
+      <div className="flex gap-2 mb-4">
+        <input value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nova categoria (ex: K-pop)" className="h-10 flex-1 rounded-lg border border-gray-200 px-3 text-sm" />
+        <input value={novaOrdem} onChange={e => setNovaOrdem(e.target.value)} type="number" placeholder="Ordem" className="h-10 w-20 rounded-lg border border-gray-200 px-3 text-sm" />
+        <button type="button" onClick={criar} disabled={saving} className="h-10 rounded-lg px-4 text-sm font-semibold text-white flex items-center gap-1" style={{ background: '#1A1A2E' }}>
+          <Plus className="w-4 h-4" /> Adicionar
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {lista
+          .slice()
+          .sort((a, b) => a.ordem - b.ordem)
+          .map(cat => (
+            <div key={cat.id} className="flex items-center gap-2 p-2 rounded-lg border" style={{ borderColor: cat.ativo ? '#E5E7EB' : '#F3F4F6', background: cat.ativo ? 'white' : '#F9FAFB', opacity: cat.ativo ? 1 : 0.6 }}>
+              {editandoId === cat.id ? (
+                <>
+                  <input value={editNome} onChange={e => setEditNome(e.target.value)} className="h-8 flex-1 rounded border px-2 text-sm" style={{ borderColor: '#E5E7EB' }} />
+                  <input defaultValue={String(cat.ordem)} onBlur={e => salvarOrdem(cat, e.target.value)} type="number" className="h-8 w-16 rounded border px-2 text-sm" style={{ borderColor: '#E5E7EB' }} />
+                  <button type="button" onClick={() => salvarEdicao(cat)} className="p-1.5 rounded hover:bg-green-50" title="Salvar"><Save className="w-4 h-4 text-green-600" /></button>
+                  <button type="button" onClick={() => setEditandoId(null)} className="p-1.5 rounded hover:bg-gray-100" title="Cancelar"><X className="w-4 h-4" style={{ color: '#6B7280' }} /></button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{cat.nome}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: cat.ativo ? '#F0FDF4' : '#FEF2F2', color: cat.ativo ? '#16A34A' : '#EF4444' }}>{cat.ativo ? 'ativa' : 'oculta'}</span>
+                  <span className="text-xs" style={{ color: '#9CA3AF' }}>#{cat.ordem}</span>
+                  <button type="button" onClick={() => { setEditandoId(cat.id); setEditNome(cat.nome) }} className="p-1 rounded hover:bg-gray-100" title="Renomear"><Pencil className="w-3.5 h-3.5" style={{ color: '#6B7280' }} /></button>
+                  <button type="button" onClick={() => toggleAtivo(cat)} className="p-1 rounded hover:bg-gray-100" title={cat.ativo ? 'Ocultar da vitrine' : 'Ativar'}>
+                    {cat.ativo ? <ToggleRight className="w-5 h-5 text-green-600" /> : <ToggleLeft className="w-5 h-5 text-gray-400" />}
+                  </button>
+                  <button type="button" onClick={() => excluir(cat)} className="p-1 rounded hover:bg-red-50" title="Excluir"><Trash2 className="w-4 h-4 text-red-500" /></button>
+                </>
+              )}
+            </div>
+          ))}
+        {lista.length === 0 && <p className="text-sm text-center py-4" style={{ color: '#9CA3AF' }}>Nenhuma categoria. Crie acima (ex: Itens usados).</p>}
+      </div>
+    </div>
+  )
+}
+
+export function ShopAdmin({ produtos, categorias }: { produtos: Produto[]; categorias: Categoria[] }) {
   const router = useRouter()
   const [editando, setEditando] = useState<Produto | null>(null)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
   const [filtroCategoria, setFiltroCategoria] = useState('')
 
-  const categoriasPresentes = Array.from(new Set(produtos.map(p => p.categoria).filter((c): c is string => !!c)))
+  const categoriasAtivas = categorias.filter(c => c.ativo).sort((a, b) => a.ordem - b.ordem)
   const produtosFiltrados = filtroCategoria ? produtos.filter(p => p.categoria === filtroCategoria) : produtos
 
   async function alternar(produto: Produto) {
@@ -201,23 +340,23 @@ export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
 
   return (
     <div className="space-y-6">
+      <CategoriasEditor categorias={categorias} />
+
       <div className="bg-white border border-gray-100 rounded-lg p-5">
         <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Novo produto</h2>
-        <ProdutoForm produto={null} onSucesso={() => router.refresh()} />
+        <ProdutoForm produto={null} categorias={categorias} onSucesso={() => router.refresh()} />
       </div>
 
-      {categoriasPresentes.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setFiltroCategoria('')} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === '' ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === '' ? '#FF6B9D' : '#6B7280', background: filtroCategoria === '' ? '#FFF1F5' : 'white' }}>
-            Todos
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => setFiltroCategoria('')} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === '' ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === '' ? '#FF6B9D' : '#6B7280', background: filtroCategoria === '' ? '#FFF1F5' : 'white' }}>
+          Todos
+        </button>
+        {categoriasAtivas.map(c => (
+          <button key={c.id} type="button" onClick={() => setFiltroCategoria(filtroCategoria === c.nome ? '' : c.nome)} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === c.nome ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === c.nome ? '#FF6B9D' : '#6B7280', background: filtroCategoria === c.nome ? '#FFF1F5' : 'white' }}>
+            {c.nome}
           </button>
-          {categoriasPresentes.map(c => (
-            <button key={c} type="button" onClick={() => setFiltroCategoria(filtroCategoria === c ? '' : c)} className="h-8 px-3 rounded-full text-xs font-medium border" style={{ borderColor: filtroCategoria === c ? '#FF6B9D' : '#E5E7EB', color: filtroCategoria === c ? '#FF6B9D' : '#6B7280', background: filtroCategoria === c ? '#FFF1F5' : 'white' }}>
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {produtosFiltrados.map((produto) => (
@@ -278,7 +417,7 @@ export function ShopAdmin({ produtos }: { produtos: Produto[] }) {
                 <X className="w-5 h-5" style={{ color: '#6B7280' }} />
               </button>
             </div>
-            <ProdutoForm key={editando.id} produto={editando} onSucesso={() => { setEditando(null); router.refresh() }} />
+            <ProdutoForm key={editando.id} produto={editando} categorias={categorias} onSucesso={() => { setEditando(null); router.refresh() }} />
           </div>
         </div>
       )}

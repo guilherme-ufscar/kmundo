@@ -4,7 +4,11 @@ import { calcularDiasArmazenado, getCorArmazenagem } from '@/lib/utils'
 import { Package, Clock, Truck } from 'lucide-react'
 import { SuiteCard } from '@/components/cliente/SuiteCard'
 import { StorageBadge } from '@/components/cliente/StorageBadge'
+import { KCoinInformationCard } from '@/components/cliente/KCoinInformationCard'
+import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 const statusLabel: Record<string, string> = {
   RECEBIDO: 'Pagamento Feito',
@@ -34,6 +38,20 @@ export default async function DashboardPage() {
 
   const primeiroNome = cliente.nomeCompleto.split(' ')[0]
 
+  // K-Coin Information (como no print Payment)
+  const [cobrancasPendentes, caixasTotal, servicosMes, config] = await Promise.all([
+    prisma.cobranca.findMany({ where: { clienteId: cliente.id, status: { in: ['PENDENTE', 'COMPROVANTE_ENVIADO'] } }, select: { valor: true, moeda: true, solicitacaoId: true, envioId: true } }),
+    prisma.caixaRecebida.count({ where: { clienteId: cliente.id } }),
+    prisma.solicitacaoServico.count({ where: { clienteId: cliente.id, criadoEm: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } } }),
+    prisma.configuracao.findFirst(),
+  ])
+  const kcoinFee = cobrancasPendentes.filter(c => c.solicitacaoId).reduce((s, c) => s + c.valor, 0)
+  const kcoinPurchase = cobrancasPendentes.filter(c => !c.solicitacaoId && c.envioId).reduce((s, c) => s + c.valor, 0) // frete pendente como proxy purchase
+  const moedaFee = cobrancasPendentes.find(c => c.solicitacaoId)?.moeda ?? config?.moedaTaxa ?? 'KRW'
+  const moedaPurchase = cobrancasPendentes.find(c => !c.solicitacaoId && c.envioId)?.moeda ?? 'KRW'
+  const caixasComServico = await prisma.solicitacaoServico.groupBy({ by: ['caixaId'], where: { clienteId: cliente.id }, _count: { _all: true } }).then(g => g.filter(x => x.caixaId).length)
+  const kid = `G${String(cliente.numeroDeSuite).padStart(4, '0')}`
+
   return (
     <div className="p-4 sm:p-8">
       {/* Header */}
@@ -46,6 +64,23 @@ export default async function DashboardPage() {
 
       {/* Suite Card */}
       <SuiteCard numeroDeSuite={cliente.numeroDeSuite} nomeCliente={cliente.nomeCompleto} />
+
+      {/* K-Coin Information — caixa do cliente (como no print) */}
+      <div className="mt-6">
+        <KCoinInformationCard
+          kid={kid}
+          email={(cliente as unknown as { usuario?: { email: string } }).usuario?.email ?? (session!.user as { email?: string }).email ?? ''}
+          kcoinPurchase={kcoinPurchase}
+          kcoinFee={kcoinFee}
+          moedaPurchase={moedaPurchase}
+          moedaFee={moedaFee}
+          serviceUses={servicosMes}
+          caixasTotal={caixasTotal}
+          caixasComServico={caixasComServico}
+          wiseLink={config?.wiseLink ?? null}
+          koreanBank={config ? { name: config.koreanBankName, account: config.koreanBankAccount, holder: config.koreanBankHolder } : null}
+        />
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6 mb-5 sm:mb-8">

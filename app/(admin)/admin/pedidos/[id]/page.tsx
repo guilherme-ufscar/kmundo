@@ -8,6 +8,7 @@ import { DeleteButton } from '@/components/admin/DeleteButton'
 const statusLabel: Record<string, string> = {
   AGUARDANDO_REVISAO: 'Aguardando revisão',
   AGUARDANDO_PAGAMENTO: 'Aguardando pagamento',
+  AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
   PAGO: 'Pago',
   COMPRADO: 'Comprado',
   CANCELADO: 'Cancelado',
@@ -16,6 +17,7 @@ const statusLabel: Record<string, string> = {
 const statusColors: Record<string, string> = {
   AGUARDANDO_REVISAO: '#F59E0B',
   AGUARDANDO_PAGAMENTO: '#8B5CF6',
+  AGUARDANDO_CONFIRMACAO: '#F97316',
   PAGO: '#3B82F6',
   COMPRADO: '#22C55E',
   CANCELADO: '#EF4444',
@@ -100,6 +102,9 @@ export default async function AdminPedidoDetalhePage({ params }: { params: { id:
             observacoesAdmin: pedido.observacoesAdmin,
             dataLimitePagamento: pedido.dataLimitePagamento?.toISOString() ?? null,
             formaPagamentoCliente: pedido.formaPagamentoCliente,
+            comprovanteCompraUrl: pedido.comprovanteCompraUrl ?? null,
+            comprovantePagamentoUrl: pedido.comprovantePagamentoUrl ?? null,
+            comprovanteEnviadoEm: pedido.comprovanteEnviadoEm?.toISOString() ?? null,
           }}
           config={config ? {
             chavePix: config.chavePix,

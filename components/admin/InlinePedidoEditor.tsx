@@ -18,6 +18,9 @@ interface Props {
     observacoesAdmin: string | null
     dataLimitePagamento: string | null
     formaPagamentoCliente: string | null
+    comprovanteCompraUrl?: string | null
+    comprovantePagamentoUrl?: string | null
+    comprovanteEnviadoEm?: string | null
   }
   config: {
     chavePix: string | null

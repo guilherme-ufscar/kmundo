@@ -6,12 +6,17 @@ import { ShopVitrine } from '@/components/cliente/ShopVitrine'
 import { PersonalShopperInfo } from '@/components/cliente/PersonalShopperInfo'
 import { GuiaPedidoInfo } from '@/components/cliente/GuiaPedidoInfo'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ShopPage() {
   const session = await auth()
-  const produtos = await prisma.produtoShop.findMany({
-    where: { ativo: true },
-    orderBy: [{ ordem: 'asc' }, { criadoEm: 'desc' }],
-  })
+  const [produtos, categorias] = await Promise.all([
+    prisma.produtoShop.findMany({
+      where: { ativo: true },
+      orderBy: [{ ordem: 'asc' }, { criadoEm: 'desc' }],
+    }),
+    prisma.shopCategoria.findMany({ where: { ativo: true }, orderBy: [{ ordem: 'asc' }, { nome: 'asc' }] }),
+  ])
 
   return (
     <main className="min-h-screen" style={{ background: '#F8F9FA' }}>
@@ -34,7 +39,7 @@ export default async function ShopPage() {
         </div>
         <PersonalShopperInfo />
         <GuiaPedidoInfo />
-        <ShopVitrine produtos={produtos} podeSolicitar={session?.user?.role === 'CLIENTE'} />
+        <ShopVitrine produtos={produtos} categorias={categorias} podeSolicitar={session?.user?.role === 'CLIENTE'} />
       </section>
     </main>
   )

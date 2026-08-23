@@ -9,20 +9,28 @@ import { ItemEnvioCard } from '@/components/admin/ItemEnvioCard'
 
 const statusLabel: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
+  AGUARDANDO_PAGAMENTO: 'Aguardando pagamento',
+  AGUARDANDO_CONFIRMACAO_PAGAMENTO: 'Aguardando confirmação do pagamento',
+  PAGAMENTO_FEITO: 'Pagamento feito',
   CONFIRMADO: 'Confirmado',
   EMBALANDO: 'Embalando',
   PAGO: 'Aguardando pagamento',
   ENVIADO: 'Enviado',
-  ENTREGUE: 'Entregue',
+  ENTREGUE: 'Caixa recebida',
+  CAIXA_RECEBIDA: 'Caixa recebida',
 }
 
 const statusColors: Record<string, string> = {
   AGUARDANDO_CONFIRMACAO: '#F59E0B',
+  AGUARDANDO_PAGAMENTO: '#8B5CF6',
+  AGUARDANDO_CONFIRMACAO_PAGAMENTO: '#F97316',
+  PAGAMENTO_FEITO: '#22C55E',
   CONFIRMADO: '#3B82F6',
   EMBALANDO: '#F97316',
   PAGO: '#8B5CF6',
   ENVIADO: '#FF6B9D',
   ENTREGUE: '#22C55E',
+  CAIXA_RECEBIDA: '#22C55E',
 }
 
 const metodoLabel: Record<string, string> = {
@@ -115,6 +123,20 @@ export default async function AdminEnvioDetalhePage({ params }: { params: { id: 
               }}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Dados novos da reforma */}
+      <div className="bg-white rounded-2xl p-6 mb-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Dados do cliente</h2>
+        <div className="space-y-3 text-sm">
+          {envio.valorDeclaradoTexto && <div><p className="text-xs" style={{ color: '#9CA3AF' }}>Valor declarado / Declaração</p><p className="whitespace-pre-wrap mt-1" style={{ color: '#1A1A2E' }}>{envio.valorDeclaradoTexto}</p></div>}
+          {envio.enderecoCompleto && <div><p className="text-xs" style={{ color: '#9CA3AF' }}>Endereço completo</p><p className="whitespace-pre-wrap mt-1" style={{ color: '#1A1A2E' }}>{envio.enderecoCompleto}</p></div>}
+          {envio.usarEnderecoCoreano && <div><p className="text-xs" style={{ color: '#9CA3AF' }}>Endereço coreano</p><p className="whitespace-pre-wrap mt-1" style={{ color: '#1A1A2E' }}>{envio.enderecoCoreano} — Tel: {envio.telefoneCoreano}</p></div>}
+          <p className="text-xs" style={{ color: envio.aceitouTermos ? '#22C55E' : '#EF4444' }}>{envio.aceitouTermos ? '✓ Aceitou Termos em ' + (envio.aceitouTermosEm ? new Date(envio.aceitouTermosEm).toLocaleString('pt-BR') : '') : '✗ Não aceitou termos'}</p>
+          {envio.comprovanteFreteUrl && <div><p className="text-xs" style={{ color: '#9CA3AF' }}>Comprovante frete</p><a href={envio.comprovanteFreteUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline" style={{ color: '#FF6B9D' }}>Ver comprovante</a> {envio.comprovanteFreteEnviadoEm && <span className="text-xs" style={{ color: '#9CA3AF' }}> — {new Date(envio.comprovanteFreteEnviadoEm).toLocaleString('pt-BR')}</span>}</div>}
+          {envio.fotosRecebimento.length > 0 && <div><p className="text-xs mb-2" style={{ color: '#9CA3AF' }}>Fotos recebimento ({envio.fotosRecebimento.length})</p><div className="grid grid-cols-3 gap-2">{envio.fotosRecebimento.map((f: string, i: number) => <a key={i} href={f} target="_blank" rel="noopener noreferrer"><img src={f} alt={`recebimento ${i}`} className="w-full aspect-square object-cover rounded-lg" /></a>)}</div></div>}
+          {envio.caixaRecebidaEm && <p className="text-xs font-medium" style={{ color: '#22C55E' }}>Caixa recebida em {new Date(envio.caixaRecebidaEm).toLocaleString('pt-BR')}</p>}
         </div>
       </div>
 

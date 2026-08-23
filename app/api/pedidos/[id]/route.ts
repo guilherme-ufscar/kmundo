@@ -86,6 +86,13 @@ export async function PATCH(
   if (parsed.data.pagoEm) {
     data.pagoEm = new Date(parsed.data.pagoEm)
   }
+  if (parsed.data.comprovanteEnviadoEm) data.comprovanteEnviadoEm = new Date(parsed.data.comprovanteEnviadoEm)
+  if (parsed.data.comprovanteConfirmadoEm) data.comprovanteConfirmadoEm = new Date(parsed.data.comprovanteConfirmadoEm)
+  // Auto preencher confirmadoEm quando admin marca PAGO/COMPRADO
+  if (parsed.data.status === 'PAGO' || parsed.data.status === 'COMPRADO') {
+    if (!pedido.comprovanteConfirmadoEm) data.comprovanteConfirmadoEm = new Date()
+    if (!pedido.pagoEm) data.pagoEm = new Date()
+  }
 
   const atualizado = await prisma.pedidoCompra.update({
     where: { id: params.id },

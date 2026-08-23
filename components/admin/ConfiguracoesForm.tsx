@@ -19,6 +19,10 @@ interface Configuracao {
   chavePix: string | null
   qrCodePix: string | null
   instrucoesPix: string | null
+  wiseLink: string | null
+  koreanBankName: string | null
+  koreanBankAccount: string | null
+  koreanBankHolder: string | null
   precoUnboxing: number
   precoFotoVideo: number
   precoMedicao: number
@@ -41,6 +45,10 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
     chavePix: config.chavePix ?? '',
     qrCodePix: config.qrCodePix ?? '',
     instrucoesPix: config.instrucoesPix ?? '',
+    wiseLink: (config as unknown as { wiseLink?: string | null }).wiseLink ?? '',
+    koreanBankName: (config as unknown as { koreanBankName?: string | null }).koreanBankName ?? '',
+    koreanBankAccount: (config as unknown as { koreanBankAccount?: string | null }).koreanBankAccount ?? '',
+    koreanBankHolder: (config as unknown as { koreanBankHolder?: string | null }).koreanBankHolder ?? '',
     diasGratuitos: String(config.diasGratuitos),
     taxaDiariaArmazem: String(config.taxaDiariaArmazem),
     moedaTaxa: config.moedaTaxa,
@@ -69,6 +77,10 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
           chavePix: form.chavePix || null,
           qrCodePix: form.qrCodePix || null,
           instrucoesPix: form.instrucoesPix || null,
+          wiseLink: form.wiseLink || null,
+          koreanBankName: form.koreanBankName || null,
+          koreanBankAccount: form.koreanBankAccount || null,
+          koreanBankHolder: form.koreanBankHolder || null,
           diasGratuitos: parseInt(form.diasGratuitos),
           taxaDiariaArmazem: parseFloat(form.taxaDiariaArmazem),
           moedaTaxa: form.moedaTaxa,
@@ -186,6 +198,29 @@ export function ConfiguracoesForm({ config, blingConectado }: Props) {
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm mt-1.5 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{ borderRadius: '8px' }}
             />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h2 className="font-semibold mb-4" style={{ color: '#1A1A2E' }}>Pagamento Internacional (Wise / Banco Coreano)</h2>
+        <p className="text-xs mb-4" style={{ color: '#9CA3AF' }}>Exibido no card Information do cliente (Payment). Deixe em branco para ocultar.</p>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Wise Quick Link</Label>
+            <Input name="wiseLink" value={form.wiseLink} onChange={handleChange} placeholder="https://wise.com/pay/..." className="h-11 mt-1.5" style={{ borderRadius: '8px' }} />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Banco — Nome</Label>
+            <Input name="koreanBankName" value={form.koreanBankName} onChange={handleChange} placeholder="Kookmin Bank" className="h-11 mt-1.5" style={{ borderRadius: '8px' }} />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Banco — Número da conta</Label>
+            <Input name="koreanBankAccount" value={form.koreanBankAccount} onChange={handleChange} placeholder="469301-01-213906" className="h-11 mt-1.5" style={{ borderRadius: '8px' }} />
+          </div>
+          <div>
+            <Label className="text-sm font-medium" style={{ color: '#374151' }}>Banco — Titular</Label>
+            <Input name="koreanBankHolder" value={form.koreanBankHolder} onChange={handleChange} placeholder="Hwa Jiwook" className="h-11 mt-1.5" style={{ borderRadius: '8px' }} />
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ export const criarPedidoCompraSchema = z.object({
 })
 
 export const atualizarPedidoCompraAdminSchema = z.object({
-  status: z.enum(['AGUARDANDO_REVISAO', 'AGUARDANDO_PAGAMENTO', 'PAGO', 'COMPRADO', 'CANCELADO']).optional(),
+  status: z.enum(['AGUARDANDO_REVISAO', 'AGUARDANDO_PAGAMENTO', 'AGUARDANDO_CONFIRMACAO', 'PAGO', 'COMPRADO', 'CANCELADO']).optional(),
   valorTotal: z.number().nonnegative().optional().nullable(),
   moeda: z.string().min(1).optional(),
   chavePix: z.string().optional().nullable(),
@@ -28,6 +28,23 @@ export const atualizarPedidoCompraAdminSchema = z.object({
   dataLimitePagamento: z.string().datetime().optional().nullable(),
   formaPagamentoCliente: z.enum(['PIX', 'CARTAO_WHATSAPP']).optional().nullable(),
   pagoEm: z.string().datetime().optional().nullable(),
+  comprovanteCompraUrl: z.string().optional().nullable(),
+  comprovantePagamentoUrl: z.string().optional().nullable(),
+  comprovanteEnviadoEm: z.string().datetime().optional().nullable(),
+  comprovanteConfirmadoEm: z.string().datetime().optional().nullable(),
+})
+
+export const pedidoConfigSchema = z.object({
+  titulo: z.string().min(2).max(120).optional(),
+  subtitulo: z.string().max(500).optional().nullable(),
+  introducaoHtml: z.string().optional().nullable(),
+  comoFuncionaHtml: z.string().optional().nullable(),
+  passoAPassoHtml: z.string().optional().nullable(),
+  podeNaoPodeHtml: z.string().optional().nullable(),
+  etapasHtml: z.string().optional().nullable(),
+  regrasHtml: z.string().optional().nullable(),
+  posPedidoHtml: z.string().optional().nullable(),
+  regrasAdicionaisHtml: z.string().optional().nullable(),
 })
 
 export type CriarPedidoCompraInput = z.infer<typeof criarPedidoCompraSchema>

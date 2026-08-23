@@ -69,7 +69,12 @@ async function main() {
   if (produtosCriados > 0) console.log(`✅ ${produtosCriados} produtos do Personal Shopper criados com categorias`)
   else console.log('ℹ️  Produtos do Personal Shopper já existem (seed idempotente)')
 
-
+  const categoriasPadrao = ['Álbuns', 'Maquiagem', 'Skincare', 'Roupas', 'Acessórios', 'Itens usados', 'K-pop', 'Outros']
+  for (let i = 0; i < categoriasPadrao.length; i++) {
+    const nome = categoriasPadrao[i]
+    await prisma.shopCategoria.upsert({ where: { nome }, update: {}, create: { nome, ordem: i, ativo: true } })
+  }
+  console.log('✅ Categorias do Shop verificadas (editáveis em /admin/shop)')
 
   // 5 clientes com dados realistas
   const clientes = [
@@ -355,6 +360,112 @@ async function main() {
     })
   }
   console.log(`✅ ${itens.length} itens criados com status e datas variados`)
+
+  // Frete — Config + Países + Caixas + Tarifas exemplo (idempotente)
+  const freteConfig = await prisma.freteConfig.findFirst()
+  if (!freteConfig) {
+    await prisma.freteConfig.create({
+      data: {
+        titulo: 'Calculadora de Frete',
+        subtitulo: 'Simule o frete por país, peso e caixa. O valor exibido é apenas uma estimativa e pode diferir do final.',
+        introducaoHtml: '<p>Bem-vinda à <strong>calculadora de frete</strong> da KMundo. Selecione o país, informe o peso e escolha a caixa para ver a estimativa instantânea.</p>',
+        comoFuncionaHtml: '<p>1. Escolha o <strong>país de destino</strong>.<br/>2. Informe o <strong>peso (kg)</strong> da caixa.<br/>3. Selecione o <strong>tamanho da caixa</strong> (opcional) e clique em Calcular.</p>',
+        avisoEstimativaHtml: '<p><strong>⚠️ Atenção:</strong> o valor exibido é apenas uma <em>estimativa</em>. O valor final é confirmado pela equipe no fechamento do envio e pode variar por pesagem oficial, dimensões finais e taxas do transportador.</p>',
+        comoPesoHtml: '<p>O peso é o principal fator. Cada faixa (ex: 0,1–1 kg, 1,01–3 kg) tem um valor. Quanto maior o peso, maior a tarifa.</p>',
+        comoPaisHtml: '<p>Cada país tem tarifas próprias. Selecione corretamente o destino para ver o valor correspondente.</p>',
+        comoCaixasHtml: '<p>Trabalhamos com caixas P, M e G com medidas padrão. Você pode simular sem escolher a caixa (tarifa genérica) ou escolher para refinar o cálculo.</p>',
+        taxasServicoHtml: '<p>Algumas tarifas incluem <strong>taxa de serviço</strong> (manuseio/embalagem). Ela é exibida separadamente e já somada no total.</p>',
+        diferencasValorHtml: '<p>Diferenças podem ocorrer por: pesagem oficial dos Correios/transportadora, cubagem, variação cambial e ajustes de embalagem.</p>',
+        regrasAdicionaisHtml: '<p>Em caso de dúvida, fale com a equipe via WhatsApp antes de fechar o envio.</p>',
+      },
+    })
+    console.log('✅ FreteConfig criada')
+  }
+
+  const paisesSeed = [
+    { nome: 'Brasil', codigo: 'BR', moeda: 'BRL', ordem: 1 },
+    { nome: 'Portugal', codigo: 'PT', moeda: 'EUR', ordem: 2 },
+    { nome: 'Estados Unidos', codigo: 'US', moeda: 'USD', ordem: 3 },
+    { nome: 'Chile', codigo: 'CL', moeda: 'USD', ordem: 4 },
+  ]
+  for (const p of paisesSeed) {
+    await prisma.fretePais.upsert({ where: { codigo: p.codigo }, update: {}, create: p })
+  }
+  console.log('✅ Países de frete verificados')
+
+  const caixasSeed = [
+    { nome: 'Caixa P', descricao: 'Pequena — ideal para 1–3 itens leves', comprimento: 25, largura: 20, altura: 12, pesoMax: 2, ordem: 1 },
+    { nome: 'Caixa M', descricao: 'Média — padrão mais usado', comprimento: 32, largura: 26, altura: 18, pesoMax: 5, ordem: 2 },
+    { nome: 'Caixa G', descricao: 'Grande — para volumes maiores', comprimento: 42, largura: 32, altura: 24, pesoMax: 10, ordem: 3 },
+  ]
+  for (const c of caixasSeed) {
+    const existe = await prisma.freteCaixaTipo.findFirst({ where: { nome: c.nome } })
+    if (!existe) await prisma.freteCaixaTipo.create({ data: c })
+  }
+  console.log('✅ Caixas padrão verificadas')
+
+  const br = await prisma.fretePais.findUnique({ where: { codigo: 'BR' } })
+  if (br) {
+    const tarifasExemplo = [
+      { pesoMin: 0.01, pesoMax: 1, valor: 85, moeda: 'BRL', taxaServico: 5 },
+      { pesoMin: 1.01, pesoMax: 3, valor: 120, moeda: 'BRL', taxaServico: 5 },
+      { pesoMin: 3.01, pesoMax: 5, valor: 165, moeda: 'BRL', taxaServico: 5 },
+      { pesoMin: 5.01, pesoMax: 10, valor: 230, moeda: 'BRL', taxaServico: 10 },
+    ]
+    for (const t of tarifasExemplo) {
+      const existe = await prisma.freteTarifa.findFirst({ where: { paisId: br.id, caixaTipoId: null, pesoMin: t.pesoMin, pesoMax: t.pesoMax } })
+      if (!existe) await prisma.freteTarifa.create({ data: { paisId: br.id, caixaTipoId: null, ...t } })
+    }
+    console.log('✅ Tarifas exemplo BR criadas')
+  }
+
+  const pedidoConfig = await prisma.pedidoConfig.findFirst()
+  if (!pedidoConfig) {
+    await prisma.pedidoConfig.create({
+      data: {
+        titulo: 'Meus Pedidos',
+        subtitulo: 'Acompanhe seus pedidos de compra da Coreia.',
+        introducaoHtml: '<p>Bem-vinda à área de <strong>pedidos</strong>. Aqui você acompanha todas as suas solicitações de compra feitas via Personal Shopper.</p>',
+        comoFuncionaHtml: '<p>Você adiciona produtos ao carrinho na Personal Shopper e envia <strong>uma única solicitação</strong>. Nossa equipe revisa, verifica disponibilidade e informa o valor total.</p>',
+        passoAPassoHtml: '<ol><li>Adicione itens ao carrinho</li><li>Revise e envie o pedido</li><li>Aguarde nossa revisão e valor</li><li>Realize o pagamento</li><li>Envie o comprovante aqui</li><li>Aguardamos confirmação e compramos</li></ol>',
+        podeNaoPodeHtml: '<p><strong>Pode:</strong> enviar vários itens de uma vez, adicionar variação e observações.<br/><strong>Não pode:</strong> editar pedido após envio — fale com a equipe.</p>',
+        etapasHtml: '<p><strong>Aguardando revisão</strong> → <strong>Aguardando pagamento</strong> → <strong>Aguardando confirmação</strong> → <strong>Pago/Confirmado</strong> → <strong>Comprado</strong></p>',
+        regrasHtml: '<p>Valores são confirmados após verificação de estoque. Pagamentos via Pix ou cartão (WhatsApp). Envie o comprovante aqui para agilizar.</p>',
+        posPedidoHtml: '<p>Após o pagamento confirmado, compramos e vinculamos os itens ao seu armazém. Você acompanha em Meus Itens.</p>',
+        regrasAdicionaisHtml: '<p>Em caso de item indisponível, estornamos ou sugerimos similar. Dúvidas? Fale no WhatsApp.</p>',
+      },
+    })
+    console.log('✅ PedidoConfig criada')
+  }
+
+  const envioConfig = await prisma.envioConfig.findFirst()
+  if (!envioConfig) {
+    await prisma.envioConfig.create({
+      data: {
+        titulo: 'Envios',
+        subtitulo: 'Solicite e acompanhe seus envios da Coreia até sua casa.',
+        introducaoHtml: '<p>Solicite seu envio informando os itens, valor declarado e endereço completo. Nossa equipe cuida do resto.</p>',
+        termosUsoHtml: '<p>Ao solicitar o envio você concorda com nossos Termos de Uso e Condições do Serviço. Leia com atenção antes de enviar.</p>',
+        avisoValorDeclaradoHtml: '<p><strong>Importante:</strong> o preenchimento do valor declarado é obrigatório para envios individuais. Em envios em grupo, não é obrigatório.<br/>O cliente deve informar corretamente o nome do item conforme deseja que ele seja declarado na etiqueta, juntamente com o valor declarado em dólar. A K-Mundo Warehouse não se responsabiliza pelos valores ou informações escolhidos pelo cliente.</p>',
+        avisoEnderecoHtml: '<p><strong>Endereço completo — obrigatório:</strong> informe todos os dados necessários para a entrega, incluindo endereço completo, número, cidade, estado, país, e-mail, telefone e outras informações necessárias. Confira cuidadosamente antes de enviar.</p>',
+        avisoEnderecoCoreanoHtml: '<p><strong>Importante:</strong> se você estiver utilizando um endereço coreano de terceiros, é obrigatório informar o endereço completo em coreano e o número de telefone da pessoa responsável pelo recebimento.</p>',
+        painelInfoHtml: '<p><strong>Como funciona:</strong> 1. Solicite o envio → 2. Aguardamos confirmação → 3. Informamos valor do frete → 4. Você paga e envia comprovante → 5. Confirmamos pagamento → 6. Enviamos a caixa → 7. Você confirma recebimento.</p>',
+        statusAguardandoConfirmacaoHtml: '<p><strong>Aguardando confirmação:</strong> recebemos sua solicitação. Vamos conferir os itens, fechar a caixa e informar o valor do frete em breve.</p>',
+        statusAguardandoPagamentoHtml: '<p><strong>Aguardando pagamento:</strong> o valor do frete foi informado. Realize o pagamento via Pix/cartão e envie o comprovante aqui.</p>',
+        statusAguardandoConfirmacaoPagamentoHtml: '<p><strong>Aguardando confirmação do pagamento:</strong> comprovante recebido! Vamos verificar o pagamento na conta e alterar para “Pagamento feito” assim que cair.</p>',
+        statusPagamentoFeitoHtml: '<p><strong>Pagamento feito:</strong> pagamento confirmado! Vamos embalar e enviar sua caixa em breve. Fique atenta ao rastreamento.</p>',
+        statusEnviadoHtml: '<p><strong>Enviado:</strong> sua caixa foi enviada! Use o código de rastreamento para acompanhar. Ao receber, clique em “Caixa recebida” e anexe fotos se desejar.</p>',
+        statusCaixaRecebidaHtml: '<p><strong>Caixa recebida:</strong> obrigado por confirmar! Se precisar, entre em contato.</p>',
+        prazosHtml: '<p>Fechamento da caixa em até 2 dias úteis após confirmação. Envio em até 3 dias úteis após pagamento feito.</p>',
+        pagamentoHtml: '<p>Pagamento via Pix (QR Code/chave) ou cartão via WhatsApp. Envie o comprovante aqui — não precisa mandar por WhatsApp.</p>',
+        comprovanteHtml: '<p>Envie comprovante em imagem ou PDF (até 10MB). Status muda automaticamente para “Aguardando confirmação do pagamento”.</p>',
+        envioHtml: '<p>Após “Pagamento feito”, sua caixa será fechada e enviada com rastreamento. Acompanhe em Detalhes do envio.</p>',
+        recebimentoHtml: '<p>Ao receber, clique em “Caixa recebida” e anexe fotos como registro. Isso atualiza automaticamente para nós.</p>',
+        regrasAdicionaisHtml: '<p>Confira endereço e valor declarado antes de enviar. Dúvidas? Fale no WhatsApp da recepção.</p>',
+      },
+    })
+    console.log('✅ EnvioConfig criada')
+  }
 
   console.log('\n🎉 Seed concluído!')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')

@@ -2,15 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { clienteWhereFromSession } from '@/lib/cliente-session'
-import { z } from 'zod'
+import { criarEnvioSchema } from '@/lib/validations/envio'
 import { notificarAdminNovoEnvio, notificarClienteEnvioSolicitado } from '@/lib/email'
-
-const criarEnvioSchema = z.object({
-  metodoEnvio: z.enum(['EMS', 'ENVIO_EM_GRUPO']),
-  itemIds: z.array(z.string()).min(1, 'Selecione ao menos um item'),
-  valorDeclarado: z.number().positive().optional(),
-  declaracaoConteudo: z.string().min(3).optional(),
-})
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -31,10 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { metodoEnvio, itemIds, valorDeclarado, declaracaoConteudo } = parsed.data
-  if (metodoEnvio !== 'ENVIO_EM_GRUPO' && !declaracaoConteudo) {
-    return NextResponse.json({ error: 'A declaração de conteúdo é obrigatória para FedEx e EMS' }, { status: 400 })
-  }
+  const { metodoEnvio, itemIds, valorDeclaradoTexto, enderecoCompleto, usarEnderecoCoreano, enderecoCoreano, telefoneCoreano } = parsed.data
 
   // Verificar que os itens pertencem ao cliente
   const itens = await prisma.item.findMany({
@@ -44,12 +34,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Um ou mais itens inválidos' }, { status: 400 })
   }
 
+  // Bloquear envio se houver serviços pendentes (caixinha acumula)
+  const pendencia = await prisma.cobranca.findFirst({
+    where: {
+      clienteId: cliente.id,
+      solicitacaoId: { not: null },
+      status: { in: ['PENDENTE', 'COMPROVANTE_ENVIADO'] },
+    },
+  })
+  if (pendencia) {
+    return NextResponse.json(
+      { error: 'Você possui serviços pendentes. Regularize o pagamento em Financeiro (ou pague junto com o frete) antes de solicitar novo envio.' },
+      { status: 403 }
+    )
+  }
+
   const envio = await prisma.envio.create({
     data: {
       clienteId: cliente.id,
       metodoEnvio,
-      valorDeclarado,
-      declaracaoConteudo,
+      valorDeclaradoTexto: valorDeclaradoTexto || null,
+      enderecoCompleto,
+      usarEnderecoCoreano: !!usarEnderecoCoreano,
+      enderecoCoreano: enderecoCoreano || null,
+      telefoneCoreano: telefoneCoreano || null,
+      aceitouTermos: true,
+      aceitouTermosEm: new Date(),
+      // compat: manter declaracaoConteudo espelhando valorDeclaradoTexto para legado
+      declaracaoConteudo: valorDeclaradoTexto || null,
+      status: 'AGUARDANDO_CONFIRMACAO',
       itens: {
         create: itemIds.map((itemId) => ({ itemId })),
       },

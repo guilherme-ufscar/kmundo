@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { User, Phone, Globe, MapPin, Save, Loader2, Camera, X } from 'lucide-react'
+import { User, Phone, Globe, MapPin, Save, Loader2, Camera, X, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,14 @@ import { Label } from '@/components/ui/label'
 import { clientePerfilSchema } from '@/lib/validations/cliente'
 
 type PerfilForm = z.infer<typeof clientePerfilSchema>
+
+function mascaraCpf(valor: string): string {
+  const digitos = valor.replace(/\D/g, '').slice(0, 11)
+  return digitos
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
+}
 
 interface PerfilFormProps {
   clienteId: string
@@ -151,6 +159,31 @@ export function PerfilForm({ clienteId, defaultValues }: PerfilFormProps) {
           {errors.nomeCompleto && (
             <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.nomeCompleto.message}</p>
           )}
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium" style={{ color: '#374151' }}>
+            CPF <span style={{ color: '#EF4444' }}>*</span> <span className="font-normal" style={{ color: '#9CA3AF' }}>(necessário para nota fiscal)</span>
+          </Label>
+          <div className="relative mt-1.5">
+            <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9CA3AF' }} />
+            <Input
+              inputMode="numeric"
+              placeholder="000.000.000-00"
+              maxLength={14}
+              className="pl-10 h-11"
+              style={{ borderRadius: '8px' }}
+              {...register('documento')}
+              onChange={(e) => {
+                e.target.value = mascaraCpf(e.target.value)
+                setValue('documento', e.target.value, { shouldValidate: true })
+              }}
+            />
+          </div>
+          {errors.documento && (
+            <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.documento.message}</p>
+          )}
+          <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>Informe CPF válido — usado para emissão automática de NF-e/NFS-e via Bling</p>
         </div>
 
         <div>

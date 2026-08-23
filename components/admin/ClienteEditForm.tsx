@@ -50,6 +50,14 @@ export function ClienteEditForm({ cliente, email }: Props) {
   const statusClienteLabel: Record<string, string> = { PENDENTE: 'Pendente', ATIVA: 'Ativa', SUSPENSA: 'Suspensa' }
   const statusClienteColor: Record<string, string> = { PENDENTE: '#F59E0B', ATIVA: '#22C55E', SUSPENSA: '#EF4444' }
 
+  function mascaraCpf(valor: string): string {
+    const digitos = valor.replace(/\D/g, '').slice(0, 11)
+    return digitos
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
+  }
+
   async function buscarCep(valor: string) {
     const cepLimpo = valor.replace(/\D/g, '')
     if (cepLimpo.length !== 8) return
@@ -208,8 +216,16 @@ export function ClienteEditForm({ cliente, email }: Props) {
         </div>
 
         <div className="col-span-2">
-          <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>CPF ou CNPJ (necessário para nota fiscal)</label>
-          <Input value={documento} onChange={e => setDocumento(e.target.value)} placeholder="000.000.000-00" className="mt-1 h-9 text-sm" style={{ borderRadius: '8px' }} />
+          <label className="text-xs font-medium" style={{ color: '#9CA3AF' }}>CPF <span style={{ color: '#EF4444' }}>*</span> <span className="font-normal">(necessário para nota fiscal — Bling)</span></label>
+          <Input
+            value={documento}
+            onChange={e => setDocumento(mascaraCpf(e.target.value))}
+            placeholder="000.000.000-00"
+            maxLength={14}
+            className="mt-1 h-9 text-sm"
+            style={{ borderRadius: '8px' }}
+          />
+          <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>CPF válido obrigatório para emissão automática de NF-e/NFS-e</p>
         </div>
 
         {/* Email */}
