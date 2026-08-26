@@ -20,5 +20,16 @@ export async function PUT(req: NextRequest) {
   let config = await prisma.envioConfig.findFirst()
   if (config) config = await prisma.envioConfig.update({ where: { id: config.id }, data: parsed.data })
   else config = await prisma.envioConfig.create({ data: parsed.data })
+
+  // Sincroniza Termos de Uso com a página pública /termos (Configuracao.termosUso)
+  // para que edição em /admin/envios?tab=textos reflita ao clicar em "Termos de uso" no fluxo do cliente
+  if (typeof parsed.data.termosUsoHtml === 'string' && parsed.data.termosUsoHtml.trim().length > 0) {
+    try {
+      const cfgGlobal = await prisma.configuracao.findFirst()
+      if (cfgGlobal) await prisma.configuracao.update({ where: { id: cfgGlobal.id }, data: { termosUso: parsed.data.termosUsoHtml } })
+      else await prisma.configuracao.create({ data: { termosUso: parsed.data.termosUsoHtml } })
+    } catch {}
+  }
+
   return NextResponse.json(config)
 }

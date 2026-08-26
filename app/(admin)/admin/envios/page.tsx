@@ -60,8 +60,18 @@ export default async function AdminEnviosPage({ searchParams }: { searchParams: 
     )
   }
 
+  // Agrupamento: filtros legados compartilham label/cor (PAGO=Ag. pagamento, ENTREGUE=Caixa recebida)
+  const statusAgrupado: Record<string, string[]> = {
+    AGUARDANDO_PAGAMENTO: ['AGUARDANDO_PAGAMENTO', 'PAGO'],
+    PAGO: ['AGUARDANDO_PAGAMENTO', 'PAGO'],
+    CAIXA_RECEBIDA: ['CAIXA_RECEBIDA', 'ENTREGUE'],
+    ENTREGUE: ['CAIXA_RECEBIDA', 'ENTREGUE'],
+  }
   const where: Record<string, unknown> = {}
-  if (searchParams.status) where['status'] = searchParams.status
+  if (searchParams.status) {
+    const grupo = statusAgrupado[searchParams.status]
+    where['status'] = grupo ? { in: grupo } : searchParams.status
+  }
   if (searchParams.metodo) where['metodoEnvio'] = searchParams.metodo
   if (searchParams.busca?.trim()) {
     const busca = searchParams.busca.trim()
@@ -108,10 +118,14 @@ export default async function AdminEnviosPage({ searchParams }: { searchParams: 
           { label: 'Aguardando pagamento', value: 'AGUARDANDO_PAGAMENTO' },
           { label: 'Ag. confirmação pag.', value: 'AGUARDANDO_CONFIRMACAO_PAGAMENTO' },
           { label: 'Pagamento feito', value: 'PAGAMENTO_FEITO' },
+          { label: 'Confirmado', value: 'CONFIRMADO' },
+          { label: 'Embalando', value: 'EMBALANDO' },
           { label: 'Enviado', value: 'ENVIADO' },
           { label: 'Caixa recebida', value: 'CAIXA_RECEBIDA' },
         ].map(({ label, value }) => {
-          const ativo = (searchParams.status ?? '') === value
+          // Ativo considera aliases legados (PAGO/ENTREGUE)
+          const statusAtivo = searchParams.status ?? ''
+          const ativo = value === '' ? statusAtivo === '' : statusAtivo === value || (value === 'AGUARDANDO_PAGAMENTO' && statusAtivo === 'PAGO') || (value === 'CAIXA_RECEBIDA' && statusAtivo === 'ENTREGUE')
           return (
             <Link
               key={value}
@@ -125,6 +139,7 @@ export default async function AdminEnviosPage({ searchParams }: { searchParams: 
         })}
         <div className="w-px bg-gray-200 self-stretch mx-1" />
         {[
+          { label: 'FedEx', value: 'FEDEX' },
           { label: 'EMS', value: 'EMS' },
           { label: 'Grupo', value: 'ENVIO_EM_GRUPO' },
         ].map(({ label, value }) => {

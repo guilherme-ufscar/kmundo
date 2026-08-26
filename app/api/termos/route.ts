@@ -37,8 +37,8 @@ const TERMOS_PADRAO = `
 
 export async function GET() {
   try {
-    const config = await prisma.configuracao.findFirst()
-    const html = config?.termosUso ?? TERMOS_PADRAO
+    const [config, envioCfg] = await Promise.all([prisma.configuracao.findFirst(), prisma.envioConfig.findFirst()])
+    const html = config?.termosUso?.trim() ? config.termosUso : envioCfg?.termosUsoHtml?.trim() ? envioCfg.termosUsoHtml : TERMOS_PADRAO
     return NextResponse.json({ html })
   } catch {
     return NextResponse.json({ html: TERMOS_PADRAO })

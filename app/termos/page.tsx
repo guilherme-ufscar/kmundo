@@ -40,8 +40,9 @@ const TERMOS_PADRAO = `
 export default async function TermosPage() {
   let html = TERMOS_PADRAO
   try {
-    const config = await prisma.configuracao.findFirst()
-    if (config?.termosUso) html = config.termosUso
+    const [config, envioCfg] = await Promise.all([prisma.configuracao.findFirst(), prisma.envioConfig.findFirst()])
+    if (config?.termosUso?.trim()) html = config.termosUso
+    else if (envioCfg?.termosUsoHtml?.trim()) html = envioCfg.termosUsoHtml
   } catch {}
 
   return (

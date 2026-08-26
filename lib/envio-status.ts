@@ -28,8 +28,16 @@ export const envioStatusTabs = [
   { label: 'Todos', value: '' },
   { label: 'Aguardando confirmação', value: 'AGUARDANDO_CONFIRMACAO' },
   { label: 'Aguardando pagamento', value: 'AGUARDANDO_PAGAMENTO' },
-  { label: 'Ag. confirmação pagamento', value: 'AGUARDANDO_CONFIRMACAO_PAGAMENTO' },
+  { label: 'Ag. confirmação pag.', value: 'AGUARDANDO_CONFIRMACAO_PAGAMENTO' },
   { label: 'Pagamento feito', value: 'PAGAMENTO_FEITO' },
+  { label: 'Confirmado', value: 'CONFIRMADO' },
+  { label: 'Embalando', value: 'EMBALANDO' },
   { label: 'Enviado', value: 'ENVIADO' },
   { label: 'Caixa recebida', value: 'CAIXA_RECEBIDA' },
 ] as const
+
+// Agrupamentos legados: PAGO compartilha label/cor com AGUARDANDO_PAGAMENTO, ENTREGUE com CAIXA_RECEBIDA
+export const statusFiltroAgrupado: Record<string, string[]> = {
+  AGUARDANDO_PAGAMENTO: ['AGUARDANDO_PAGAMENTO', 'PAGO'],
+  CAIXA_RECEBIDA: ['CAIXA_RECEBIDA', 'ENTREGUE'],
+}

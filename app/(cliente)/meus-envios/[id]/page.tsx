@@ -81,20 +81,34 @@ export default async function EnvioDetalhePage({ params }: { params: { id: strin
 
   const painelHtml = painelPorStatus[envio.status] ?? null
 
+  const tituloConfig = envioConfig?.titulo?.trim() || null
+  const subtituloConfig = envioConfig?.subtitulo?.trim() || null
+
   return (
     <div className="p-4 sm:p-8 max-w-3xl">
       <Link href="/meus-envios" className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:opacity-70" style={{ color: '#FF6B9D' }}>
         <ArrowLeft className="w-4 h-4" />Voltar para meus envios
       </Link>
 
+      {(tituloConfig || subtituloConfig) && (
+        <div className="mb-6">
+          {tituloConfig && <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>{tituloConfig}</h1>}
+          {subtituloConfig && <p className="text-sm mt-1" style={{ color: '#6B7280' }}>{subtituloConfig}</p>}
+        </div>
+      )}
+
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Envio via {metodoLabel[envio.metodoEnvio]}</h1>
+          <h1 className="text-xl font-bold" style={{ color: '#1A1A2E' }}>Envio via {metodoLabel[envio.metodoEnvio]}</h1>
           <div className="flex items-center gap-2 mt-2">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColors[envio.status] ?? '#6B7280' }}>{statusLabel[envio.status] ?? envio.status}</span>
           </div>
         </div>
       </div>
+
+      {envioConfig?.introducaoHtml?.trim() && (
+        <div className="bg-white rounded-2xl p-6 mb-5 termos-content" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: '4px solid #FF6B9D' }} dangerouslySetInnerHTML={{ __html: envioConfig.introducaoHtml }} />
+      )}
 
       {/* Painel informativo por status */}
       {painelHtml && (
@@ -183,9 +197,21 @@ export default async function EnvioDetalhePage({ params }: { params: { id: strin
       )}
 
       {embedUrl && (
-        <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl p-6 mb-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <h2 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: '#6B7280' }}><Truck className="w-4 h-4" /> VÍDEO DO ENVIO</h2>
           <div className="aspect-video rounded-xl overflow-hidden"><iframe src={embedUrl} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div>
+        </div>
+      )}
+
+      {(envioConfig?.prazosHtml?.trim() || envioConfig?.pagamentoHtml?.trim() || envioConfig?.comprovanteHtml?.trim() || envioConfig?.envioHtml?.trim() || envioConfig?.recebimentoHtml?.trim() || envioConfig?.regrasAdicionaisHtml?.trim() || envioConfig?.termosUsoHtml?.trim()) && (
+        <div className="space-y-3 mt-2">
+          {envioConfig?.prazosHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.prazosHtml }} />}
+          {envioConfig?.pagamentoHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.pagamentoHtml }} />}
+          {envioConfig?.comprovanteHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.comprovanteHtml }} />}
+          {envioConfig?.envioHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.envioHtml }} />}
+          {envioConfig?.recebimentoHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.recebimentoHtml }} />}
+          {envioConfig?.regrasAdicionaisHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.regrasAdicionaisHtml }} />}
+          {envioConfig?.termosUsoHtml?.trim() && <div className="bg-white rounded-2xl p-6 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: envioConfig.termosUsoHtml }} />}
         </div>
       )}
     </div>

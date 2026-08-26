@@ -33,5 +33,12 @@ export async function PATCH(req: NextRequest) {
     config = await prisma.configuracao.create({ data: { termosUso: html } })
   }
 
+  // Mantém EnvioConfig.termosUsoHtml sincronizado para que o fluxo de Envios reflita o mesmo termo
+  try {
+    const envioCfg = await prisma.envioConfig.findFirst()
+    if (envioCfg) await prisma.envioConfig.update({ where: { id: envioCfg.id }, data: { termosUsoHtml: html } })
+    else await prisma.envioConfig.create({ data: { termosUsoHtml: html } })
+  } catch {}
+
   return NextResponse.json({ ok: true })
 }

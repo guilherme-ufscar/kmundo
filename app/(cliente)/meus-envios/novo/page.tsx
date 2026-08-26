@@ -35,7 +35,12 @@ export default function NovoEnvioPage() {
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [error, setError] = useState('')
-  const [config, setConfig] = useState<{ avisoValorDeclaradoHtml?: string | null; avisoEnderecoHtml?: string | null; avisoEnderecoCoreanoHtml?: string | null } | null>(null)
+  const [config, setConfig] = useState<{
+    titulo?: string | null; subtitulo?: string | null; introducaoHtml?: string | null; termosUsoHtml?: string | null
+    avisoValorDeclaradoHtml?: string | null; avisoEnderecoHtml?: string | null; avisoEnderecoCoreanoHtml?: string | null
+    painelInfoHtml?: string | null; prazosHtml?: string | null; pagamentoHtml?: string | null; comprovanteHtml?: string | null
+    envioHtml?: string | null; recebimentoHtml?: string | null; regrasAdicionaisHtml?: string | null
+  } | null>(null)
 
   useEffect(() => {
     async function carregar() {
@@ -114,17 +119,24 @@ export default function NovoEnvioPage() {
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl">
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <Link href="/meus-envios">
           <button type="button" className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-colors" style={{ color: '#6B7280' }}>
             <ArrowLeft className="w-4 h-4" />
           </button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>Solicitar Envio</h1>
-          <p style={{ color: '#6B7280' }}>Preencha todos os campos obrigatórios para enviar</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E' }}>{config?.titulo?.trim() || 'Solicitar Envio'}</h1>
+          <p style={{ color: '#6B7280' }}>{config?.subtitulo?.trim() || 'Preencha todos os campos obrigatórios para enviar'}</p>
         </div>
       </div>
+
+      {config?.introducaoHtml?.trim() && (
+        <div className="bg-white rounded-2xl p-6 mb-5 termos-content" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: '4px solid #FF6B9D' }} dangerouslySetInnerHTML={{ __html: config.introducaoHtml }} />
+      )}
+      {config?.painelInfoHtml?.trim() && (
+        <div className="bg-white rounded-2xl p-6 mb-5 termos-content" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.painelInfoHtml }} />
+      )}
 
       {error && (
         <div className="mb-6 p-3 rounded-lg text-sm" style={{ background: '#FEF2F2', color: '#EF4444', border: '1px solid #FECACA' }}>
@@ -235,7 +247,21 @@ export default function NovoEnvioPage() {
             Li e concordo com os <Link href="/termos" target="_blank" className="font-semibold underline" style={{ color: '#FF6B9D' }}>Termos de Uso e Condições do Serviço</Link> e estou ciente das condições desta solicitação de envio. *
           </span>
         </label>
+        {config?.termosUsoHtml?.trim() && (
+          <div className="mt-4 rounded-xl p-4 max-h-64 overflow-y-auto termos-content text-sm" style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} dangerouslySetInnerHTML={{ __html: config.termosUsoHtml }} />
+        )}
       </div>
+
+      {(config?.prazosHtml?.trim() || config?.pagamentoHtml?.trim() || config?.comprovanteHtml?.trim() || config?.envioHtml?.trim() || config?.recebimentoHtml?.trim() || config?.regrasAdicionaisHtml?.trim()) && (
+        <div className="space-y-3 mb-6">
+          {config?.prazosHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.prazosHtml }} />}
+          {config?.pagamentoHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.pagamentoHtml }} />}
+          {config?.comprovanteHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.comprovanteHtml }} />}
+          {config?.envioHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.envioHtml }} />}
+          {config?.recebimentoHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.recebimentoHtml }} />}
+          {config?.regrasAdicionaisHtml?.trim() && <div className="bg-white rounded-2xl p-5 termos-content text-sm" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }} dangerouslySetInnerHTML={{ __html: config.regrasAdicionaisHtml }} />}
+        </div>
+      )}
 
       <Button type="button" onClick={handleSubmit} disabled={salvando || !podeEnviar} className="w-full h-12 font-semibold text-white rounded-xl disabled:opacity-50" style={{ background: 'linear-gradient(135deg, #FF6B9D, #FF4D8D)', borderRadius: '12px' }}>
         {salvando ? 'Solicitando...' : `Solicitar Envio (${itensSelecionados.size} ${itensSelecionados.size === 1 ? 'item' : 'itens'})`}
