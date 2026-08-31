@@ -1,17 +1,11 @@
 'use client'
 
-import { Flag, Coins, Wallet, Hash, Mail, ExternalLink } from 'lucide-react'
+import { Flag, Mail, CheckCircle2, ExternalLink } from 'lucide-react'
 
 type Props = {
-  kid: string
   email: string
-  kcoinPurchase: number
   kcoinFee: number
-  moedaPurchase: string
   moedaFee: string
-  serviceUses: number
-  caixasTotal: number
-  caixasComServico: number
   wiseLink?: string | null
   koreanBank?: { name?: string | null; account?: string | null; holder?: string | null } | null
 }
@@ -21,7 +15,7 @@ function fmt(valor: number, moeda: string) {
   return `${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${moeda}`
 }
 
-export function KCoinInformationCard({ kid, email, kcoinPurchase, kcoinFee, moedaPurchase, moedaFee, serviceUses, caixasTotal, caixasComServico, wiseLink, koreanBank }: Props) {
+export function KCoinInformationCard({ email, kcoinFee, moedaFee, wiseLink, koreanBank }: Props) {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB' }}>
@@ -32,31 +26,16 @@ export function KCoinInformationCard({ kid, email, kcoinPurchase, kcoinFee, moed
         <div className="border-t border-dashed pt-4 space-y-2 text-sm" style={{ borderColor: '#E5E7EB' }}>
           <div className="flex items-center gap-2">
             <span style={{ color: '#374151' }}>→</span>
-            <span className="font-bold" style={{ color: '#1A1A2E' }}>KID :</span>
-            <span style={{ color: '#6B7280' }}>{kid} ( {kid} )</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Coins className="w-4 h-4" style={{ color: '#F59E0B' }} />
-            <span className="font-bold" style={{ color: '#1A1A2E' }}>KCoin (For Purchase) :</span>
-            <span style={{ color: kcoinPurchase > 0 ? '#DC2626' : '#16A34A' }}>{fmt(kcoinPurchase, moedaPurchase)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wallet className="w-4 h-4" style={{ color: '#16A34A' }} />
-            <span className="font-bold" style={{ color: '#1A1A2E' }}>KCoin (For Fee Payment) :</span>
+            <span className="font-bold" style={{ color: '#1A1A2E' }}>Serviços a pagar:</span>
             <span style={{ color: kcoinFee > 0 ? '#DC2626' : '#16A34A' }}>{fmt(kcoinFee, moedaFee)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Hash className="w-4 h-4" style={{ color: '#6B7280' }} />
-            <span className="font-bold" style={{ color: '#1A1A2E' }}>Number of monthly service uses :</span>
-            <span style={{ color: '#6B7280' }}>{serviceUses}</span>
-          </div>
-          <div className="flex items-center gap-2">
             <Mail className="w-4 h-4" style={{ color: '#6B7280' }} />
-            <span className="font-bold" style={{ color: '#1A1A2E' }}>Email :</span>
+            <span className="font-bold" style={{ color: '#1A1A2E' }}>Email:</span>
             <span style={{ color: '#6B7280' }}>{email}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span style={{ color: '#6B7280' }}>Caixas: {caixasTotal} • Com serviço: {caixasComServico} • A pagar para liberar: {fmt(kcoinFee, moedaFee)}</span>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold" style={{ color: '#16A34A' }}>
+              <CheckCircle2 className="w-4 h-4" /> ok
+            </span>
           </div>
         </div>
       </div>
